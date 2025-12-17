@@ -12,6 +12,7 @@ import {
   createListCollection,
 } from '@chakra-ui/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { withChildren } from '../../utils/chakra-slot';
 interface TablePaginationProps {
   totalCount: number;
   pageSize: number;
@@ -29,6 +30,19 @@ const frameworks = createListCollection({
     { label: '100', value: '100' },
   ],
 });
+
+const SelectPositioner = withChildren(Select.Positioner);
+const SelectContent = withChildren(Select.Content);
+const SelectItem = withChildren(Select.Item);
+const PaginationPrev = withChildren(Pagination.PrevTrigger);
+const PaginationNext = withChildren(Pagination.NextTrigger);
+const PaginationItem = withChildren(Pagination.Item);
+const SelectHiddenSelect = withChildren(Select.HiddenSelect);
+const SelectControl = withChildren(Select.Control);
+const SelectTrigger = withChildren(Select.Trigger);
+const SelectValueText = withChildren(Select.ValueText);
+const SelectIndicatorGroup = withChildren(Select.IndicatorGroup);
+const SelectIndicator = withChildren(Select.Indicator);
 
 export default function TablePagination({
   totalCount,
@@ -54,26 +68,26 @@ export default function TablePagination({
             onValueChange={(value) => onPageSizeChange(Number(value.items[0].value))}
             value={[String(pageSize)]}
           >
-            <Select.HiddenSelect />
-            <Select.Control>
-              <Select.Trigger>
-                <Select.ValueText placeholder="" />
-              </Select.Trigger>
-              <Select.IndicatorGroup>
-                <Select.Indicator />
-              </Select.IndicatorGroup>
-            </Select.Control>
+            <SelectHiddenSelect />
+            <SelectControl>
+              <SelectTrigger>
+                <SelectValueText placeholder="" />
+              </SelectTrigger>
+              <SelectIndicatorGroup>
+                <SelectIndicator />
+              </SelectIndicatorGroup>
+            </SelectControl>
             <Portal>
-              <Select.Positioner>
-                <Select.Content>
+              <SelectPositioner>
+                <SelectContent>
                   {frameworks.items.map((framework) => (
-                    <Select.Item item={framework.value} key={framework.value}>
+                    <SelectItem item={framework.value} key={framework.value}>
                       {framework.label}
                       <Select.ItemIndicator />
-                    </Select.Item>
+                    </SelectItem>
                   ))}
-                </Select.Content>
-              </Select.Positioner>
+                </SelectContent>
+              </SelectPositioner>
             </Portal>
           </Select.Root>
         </HStack>
@@ -87,11 +101,11 @@ export default function TablePagination({
           onPageChange={(e) => onPageChange(e.page)}
         >
           <ButtonGroup size="sm" variant="ghost">
-            <Pagination.PrevTrigger asChild>
+            <PaginationPrev asChild>
               <IconButton aria-label="Previous page">
                 <ChevronLeft size={18} />
               </IconButton>
-            </Pagination.PrevTrigger>
+            </PaginationPrev>
 
             <Pagination.Items
               render={(item) => (
@@ -107,11 +121,11 @@ export default function TablePagination({
               )}
             />
 
-            <Pagination.NextTrigger asChild>
+            <PaginationNext asChild>
               <IconButton aria-label="Next page">
                 <ChevronRight size={18} />
               </IconButton>
-            </Pagination.NextTrigger>
+            </PaginationNext>
           </ButtonGroup>
         </Pagination.Root>
       </HStack>

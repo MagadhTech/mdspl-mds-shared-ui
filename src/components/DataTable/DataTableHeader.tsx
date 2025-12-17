@@ -42,8 +42,9 @@ export default function TableHeader() {
               </SortableHeaderCell>
             ))}
 
-            <Table.ColumnHeader>
-              Actions
+            <Table.ColumnHeader boxSize={'3.5'}>Actions</Table.ColumnHeader>
+
+            <Table.ColumnHeader boxSize={'0.5'}>
               <ColumnVisibilityMenu visibility={visibility} onToggle={toggleColumn} />
             </Table.ColumnHeader>
           </Table.Row>
