@@ -1,27 +1,17 @@
 import { tableStore } from './tableStore';
-import type { ColumnId } from './Column';
 
-export const setColumnOrder = (order: ColumnId[]) => {
+export const setColumnOrder = (order: string[]) => {
   tableStore.setState((s) => ({ ...s, columnOrder: order }));
 };
 
-export const toggleColumn = (id: ColumnId) => {
+export const toggleColumn = (id: string) => {
   tableStore.setState((s) => ({
     ...s,
     visibility: { ...s.visibility, [id]: !s.visibility[id] },
   }));
 };
 
-// export const sortByColumn = (column: ColumnId) => {
-//   tableStore.setState((s) =>
-//     s.sortColumn === column
-//       ? { ...s, sortDirection: s.sortDirection === 'asc' ? 'desc' : 'asc' }
-//       : { ...s, sortColumn: column, sortDirection: 'asc' }
-//   );
-// };
-
-
-export function sortByColumn(columnId: ColumnId) {
+export function sortByColumn(columnId: string) {
   tableStore.setState((s) => {
     if (s.sortColumn === columnId) {
       return {

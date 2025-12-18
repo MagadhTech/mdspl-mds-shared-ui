@@ -1,4 +1,4 @@
-export type DensityType = 'comfortable' | 'standard' | 'compact';
+export type DensityType = 'sm' | 'md' | 'lg';
 export type SortOrder = 'asc' | 'desc';
 
 export interface Column<T = unknown> {
@@ -27,12 +27,6 @@ export interface DataTableAction<T = unknown> {
     | 'pink';
 }
 
-export interface IHeaderList {
-  id: string;
-  label: string;
-  sortable: boolean;
-}
-
 // export interface IDensityType "comfortable" | "standard" | "compact";
 
 export interface DataTableProps<T = unknown> {
@@ -51,7 +45,7 @@ export interface DataTableProps<T = unknown> {
   // showIndex?: boolean;
   // pageKey: string; // required for persistence
 
-  headers: Column<T>[];
+  // headers: Column<T>[];
   data?: T[];
   loading?: boolean;
   emptyMessage?: string;
@@ -59,5 +53,8 @@ export interface DataTableProps<T = unknown> {
   showIndex?: boolean;
   page?: number;
   pageSize?: number;
-  hideHeaderList?: IHeaderList[];
+  hideHeaderList?: Record<string, boolean>;
+  onPageChange?: (page: number) => void | undefined;
+  onPageSizeChange?: (size: number) => void | undefined;
+  density?: DensityType;
 }

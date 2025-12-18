@@ -17,9 +17,9 @@ interface TablePaginationProps {
   totalCount: number;
   pageSize: number;
   currentPage: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
   siblingCount?: number;
+  onPageChange?: (page: number) => void | undefined;
+  onPageSizeChange?: (size: number) => void | undefined;
 }
 
 const frameworks = createListCollection({
@@ -36,7 +36,6 @@ const SelectContent = withChildren(Select.Content);
 const SelectItem = withChildren(Select.Item);
 const PaginationPrev = withChildren(Pagination.PrevTrigger);
 const PaginationNext = withChildren(Pagination.NextTrigger);
-const PaginationItem = withChildren(Pagination.Item);
 const SelectHiddenSelect = withChildren(Select.HiddenSelect);
 const SelectControl = withChildren(Select.Control);
 const SelectTrigger = withChildren(Select.Trigger);
@@ -65,7 +64,9 @@ export default function TablePagination({
             collection={frameworks}
             size="sm"
             width="60px"
-            onValueChange={(value) => onPageSizeChange(Number(value.items[0].value))}
+            onValueChange={(value) =>
+              onPageSizeChange && onPageSizeChange(Number(value.items[0].value))
+            }
             value={[String(pageSize)]}
           >
             <SelectHiddenSelect />
@@ -98,7 +99,7 @@ export default function TablePagination({
           pageSize={pageSize}
           page={currentPage}
           siblingCount={siblingCount}
-          onPageChange={(e) => onPageChange(e.page)}
+          onPageChange={(e) => onPageChange && onPageChange(e.page)}
         >
           <ButtonGroup size="sm" variant="ghost">
             <PaginationPrev asChild>

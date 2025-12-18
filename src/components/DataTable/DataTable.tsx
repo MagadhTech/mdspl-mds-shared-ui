@@ -7,27 +7,31 @@ import { dummyData } from '../../dummy/data';
 import TableHeader from './DataTableHeader';
 import TablePagination from './DataTablePagination';
 import TableRows from './DataTableRow';
-import { tableStore } from './tableStore';
+import { setData, tableStore } from './tableStore';
 import { DataTableProps } from './types';
 
 export default function DataTable<T extends Record<string, unknown>>({
-  headers,
-  data = [],
+  // headers,
+  data: rowData = [],
   loading = false,
   emptyMessage = 'No data',
   actions,
   showIndex = true,
   page = 0,
   pageSize = 10,
-  hideHeaderList = [],
+  hideHeaderList = {},
+  onPageChange,
+  onPageSizeChange,
+  density = 'sm',
 }: DataTableProps<T>) {
-  // const [page, setPage] = useState(1);
-  // const [pageSize, setPageSize] = useState(20);
+  useMemo(() => {
+    setData(rowData);
+  }, [rowData]);
 
-  const { sortColumn, sortDirection } = useStore(tableStore);
+  const { sortColumn, sortDirection, data: newData } = useStore(tableStore);
 
   const processedData = useMemo(() => {
-    const data = [...dummyData];
+    const data = [...newData];
 
     if (sortColumn) {
       data.sort((a, b) =>
@@ -41,26 +45,31 @@ export default function DataTable<T extends Record<string, unknown>>({
     return data.slice(start, start + pageSize);
   }, [page, pageSize, sortColumn, sortDirection]);
 
+
   return (
-    <Box h="100vh" display="flex" flexDirection="column" p={4}>
+    <Box h="100vh" display="flex" flexDirection="column" p={2} pt={2}>
       <Box flex="1" overflow="hidden">
         <Box h="100%" overflowY="auto" border="1px solid" borderColor="gray.200" borderRadius="md">
-          <Table.Root variant="outline" w="100%" size={'lg'}>
+          <Table.Root variant="outline" w="100%" size={density}>
             <TableHeader />
-            <TableRows data={processedData} page={page} pageSize={pageSize} />
+            <TableRows data={processedData} />
           </Table.Root>
         </Box>
       </Box>
 
       <Box mt={0.5}>
         <TablePagination
-          totalCount={dummyData.length}
+          totalCount={rowData.length}
           pageSize={pageSize}
           currentPage={page}
-          onPageChange={setPage}
+          onPageChange={onPageChange}
           onPageSizeChange={(s) => {
-            setPageSize(s);
-            setPage(0);
+            if (onPageSizeChange) {
+              onPageSizeChange(s);
+            }
+            if (page > 1 && onPageChange) {
+              onPageChange(1);
+            }
           }}
         />
       </Box>

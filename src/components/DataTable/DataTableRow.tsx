@@ -5,32 +5,17 @@ import { useStore } from '@tanstack/react-store';
 import { Edit, Trash } from 'lucide-react';
 import { tableStore } from './tableStore';
 
-interface RowData {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-  joinDate: string;
-}
-
 export default function TableRows({
-  data = [],
-  page,
-  pageSize,
+  data = [] as Array<Record<string, any>>,
 }: {
-  data: RowData[];
-  page: number;
-  pageSize: number;
+  data: Array<Record<string, any>>;
 }) {
   const { columnOrder, visibility } = useStore(tableStore);
 
   return (
     <Table.Body>
-      {data.map((row, index) => (
+      {data.map((row) => (
         <Table.Row key={row.id}>
-          <Table.Cell fontWeight="medium">{(page - 1) * pageSize + index + 1}</Table.Cell>
-
           {columnOrder
             .filter((id) => visibility[id])
             .map((id) => (
