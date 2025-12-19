@@ -99,17 +99,17 @@ function App() {
   return (
     <div
       style={{
-        paddingLeft: '10px',
-        paddingTop: '10px',
-        paddingRight: '10px',
+        border: '1px solid red',
+        height: '100vh',
+        flex: 1,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'all 0.3s ease-in-out',
       }}
     >
       <FiltersToolBar
-        title={
-          <Text color={'red'}>
-            Filters
-          </Text>
-        }
+        title={<Text color={'red'}>Filters</Text>}
         filters={filters}
         onVisibilityChange={handleVisibility}
         onReorder={(reordered) => {

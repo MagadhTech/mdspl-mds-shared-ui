@@ -52,7 +52,7 @@ export default function TablePagination({
   siblingCount = 2,
 }: TablePaginationProps) {
   return (
-    <Box mt={6} width="100%">
+    <Box width="100%">
       <HStack justify="space-between" mx="auto" flexWrap="wrap">
         {/* PAGE SIZE SELECT */}
         <HStack>

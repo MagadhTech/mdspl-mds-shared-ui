@@ -3,7 +3,6 @@
 import { Box, Table } from '@chakra-ui/react';
 import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
-import { dummyData } from '../../dummy/data';
 import TableHeader from './DataTableHeader';
 import TablePagination from './DataTablePagination';
 import TableRows from './DataTableRow';
@@ -45,11 +44,17 @@ export default function DataTable<T extends Record<string, unknown>>({
     return data.slice(start, start + pageSize);
   }, [page, pageSize, sortColumn, sortDirection]);
 
-
   return (
     <Box h="100vh" display="flex" flexDirection="column" p={2} pt={2}>
       <Box flex="1" overflow="hidden">
-        <Box h="100%" overflowY="auto" border="1px solid" borderColor="gray.200" borderRadius="md">
+        <Box
+          h="100%"
+          flex={0.92}
+          overflowY="auto"
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="md"
+        >
           <Table.Root variant="outline" w="100%" size={density}>
             <TableHeader />
             <TableRows data={processedData} />
@@ -57,7 +62,7 @@ export default function DataTable<T extends Record<string, unknown>>({
         </Box>
       </Box>
 
-      <Box mt={0.5}>
+      <Box mt={0.5} flex={0.08}>
         <TablePagination
           totalCount={rowData.length}
           pageSize={pageSize}
