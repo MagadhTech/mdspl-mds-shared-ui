@@ -27,24 +27,8 @@ export interface DataTableAction<T = unknown> {
     | 'pink';
 }
 
-// export interface IDensityType "comfortable" | "standard" | "compact";
 
 export interface DataTableProps<T = unknown> {
-  // columns: Column<T>[];
-  // data: T[];
-  // loading?: boolean;
-  // page?: number;
-  // rowsPerPage?: number;
-  // totalRows?: number;
-  // onPageChange?: (page: number) => void;
-  // onRowsPerPageChange?: (rowsPerPage: number) => void;
-  // onRowClick?: (row: T) => void;
-  // actions?: DataTableAction<T>[];
-  // emptyMessage?: string;
-  // density?: DensityType;
-  // showIndex?: boolean;
-  // pageKey: string; // required for persistence
-
   // headers: Column<T>[];
   data?: T[];
   loading?: boolean;

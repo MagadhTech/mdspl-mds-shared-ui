@@ -1,25 +1,3 @@
-// export const getRowHeight = (density: DensityType): string => {
-//   switch (density) {
-//     case "comfortable":
-//       return "64px";
-//     case "compact":
-//       return "40px";
-//     default:
-//       return "52px";
-//   }
-// };
-
-// export const getCellPadding = (density: DensityType): string => {
-//   switch (density) {
-//     case "comfortable":
-//       return "16px";
-//     case "compact":
-//       return "6px";
-//     default:
-//       return "12px";
-//   }
-// };
-
 export const sortData = <T extends Record<string, unknown>>(
   data: T[],
   orderBy: string,

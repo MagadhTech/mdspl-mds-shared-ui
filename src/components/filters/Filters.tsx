@@ -1,4 +1,4 @@
-import { HStack, Text } from '@chakra-ui/react';
+import { HStack } from '@chakra-ui/react';
 import FiltersDrawer from './FilterDrawer';
 import { IMainFilterType } from './FilterTypes';
 
@@ -18,7 +18,7 @@ export const FiltersToolBar = ({
 }: IMainFilterType) => {
   return (
     <HStack wrap="wrap" pl={2} pr={2} width="100%" justify="space-between">
-      <Text>{title}</Text>
+      {title}
       <HStack>
         {filters.length > 0 &&
           filters
@@ -39,7 +39,6 @@ export const FiltersToolBar = ({
           maxToolbarUnits={maxToolbarUnits}
           pageKey={pageKey}
           filters={filters}
-
           currentFilters={currentFilters}
           onLoadPreset={onLoadPreset}
           activePresetName={activePresetName}

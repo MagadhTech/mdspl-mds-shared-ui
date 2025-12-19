@@ -14,7 +14,7 @@ export interface IFilterConfig {
 }
 
 export interface IMainFilterType {
-  title: React.ReactNode;
+  title: JSX.Element;
   filters: IFilterConfig[];
   onVisibilityChange?: (id: string, visible: boolean) => void;
   onReorder?: (newOrder: IFilterConfig[]) => void;

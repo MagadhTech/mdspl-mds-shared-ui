@@ -105,7 +105,11 @@ function App() {
       }}
     >
       <FiltersToolBar
-        title="table library"
+        title={
+          <Text color={'red'}>
+            Filters
+          </Text>
+        }
         filters={filters}
         onVisibilityChange={handleVisibility}
         onReorder={(reordered) => {
@@ -141,7 +145,7 @@ export default App;
 
 ('use client');
 
-import { Combobox, HStack, useFilter, useListCollection } from '@chakra-ui/react';
+import { Combobox, HStack, Text, useFilter, useListCollection } from '@chakra-ui/react';
 
 const ComboboxRoot = withChildren(Combobox.Root);
 const ComboboxControl = withChildren(Combobox.Control);
