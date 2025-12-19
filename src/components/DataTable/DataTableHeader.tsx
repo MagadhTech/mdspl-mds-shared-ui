@@ -34,7 +34,7 @@ export default function TableHeader() {
     <Table.Header background={'gray.100'} position="sticky" top={0} p="0">
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-          <Table.Row>
+          <Table.Row height={'28px'}>
             {visibleOrderedColumns.map((col, index) => {
               const isSorted = sortColumn === col?.id;
               const isLast = index === visibleOrderedColumns.length - 1;
