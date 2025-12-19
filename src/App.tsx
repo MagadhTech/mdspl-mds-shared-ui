@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DataTable } from './components/DataTable';
 import DateRangeFilter from './components/filters/FilterComponents/DateRangeSelector';
 import { FiltersToolBar } from './components/filters/Filters';
@@ -8,84 +8,132 @@ function App() {
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
 
+  const [filters, setFilters] = useState<IFilterConfig[]>([
+    {
+      id: 'DateRange',
+      customComponent: (
+        <DateRangeFilter onChange={(v) => updateFilterValue('DateRange', v)} value={''} />
+      ),
+      visible: true,
+      label: 'Date Range',
+      value: '',
+      onChange: (v: string | number | boolean | undefined) => updateFilterValue('DateRange', v),
+      size: 1.5,
+      type: 'date',
+    },
+
+    {
+      id: 'select',
+      customComponent: <Demo />,
+      visible: true,
+      label: 'Select',
+      value: '',
+      onChange: (v: string | number | boolean | undefined) => updateFilterValue('select', v),
+      size: 1.5,
+      type: 'select',
+    },
+
+    {
+      id: 'checkbox',
+      customComponent: <DemoCheckbox />,
+      visible: true,
+      label: 'Checkbox',
+      value: '',
+      onChange: (v: boolean | undefined | number | string) => updateFilterValue('checkbox', v),
+      size: 1.5,
+      type: 'checkbox',
+    },
+
+    {
+      id: 'search input',
+      customComponent: <DemoSearch />,
+      visible: true,
+      label: 'Search',
+      value: '',
+      onChange: (v: string | number | boolean | undefined) => updateFilterValue('search input', v),
+      size: 1.5,
+      type: 'text',
+    },
+  ]);
+
+  function updateFilterValue(id: string, value: any) {
+    setFilters((prev) => prev.map((f) => (f.id === id ? { ...f, value } : f)));
+  }
+
+  function handleVisibility(id: string, visible: boolean) {
+    setFilters((prev) => prev.map((f) => (f.id === id ? { ...f, visible } : f)));
+  }
+
+  function handleSize(id: string, size: number) {
+    type UpdatedFilter = IFilterConfig & { size: number };
+
+    setFilters((prev: IFilterConfig[]) =>
+      prev.map((f) => (f.id === id ? ({ ...f, size } as UpdatedFilter) : f)),
+    );
+  }
+
+  function handleClear() {
+    setFilters((prev) =>
+      prev.map((f) => ({
+        ...f,
+        value: '',
+      })),
+    );
+  }
+
+  const activeFilterState = filters.reduce((obj, f) => {
+    obj[f.id] = f.value;
+    return obj;
+  }, {} as Record<string, any>);
+
+  useEffect(() => {
+    const order = loadOrder('demo');
+    if (!order.length) return;
+
+    setFilters((prev) => {
+      const map = Object.fromEntries(prev.map((f) => [f.id, f]));
+      return order.map((id) => map[id]).filter(Boolean);
+    });
+  }, []);
+
   return (
-    <>
-      <div
-        style={{
-          paddingLeft: '10px',
-          paddingTop: '10px',
-          paddingRight: '10px',
+    <div
+      style={{
+        paddingLeft: '10px',
+        paddingTop: '10px',
+        paddingRight: '10px',
+      }}
+    >
+      <FiltersToolBar
+        title="table library"
+        filters={filters}
+        onVisibilityChange={handleVisibility}
+        onReorder={(reordered) => {
+          saveOrder(
+            'demo',
+            reordered.map((f) => f.id),
+          );
+          setFilters(reordered);
         }}
-      >
-        <FiltersToolBar
-          title="table library"
-          filters={[
-            {
-              id: 'DateRange',
-              customComponent: <DateRangeFilter onChange={() => {}} value={''} />,
-              visible: true,
-              label: 'Date Range',
-              value: '',
-              onChange: () => {},
-              size: 1.5,
-              type: 'date',
-            },
+        onSizeChange={handleSize}
+        onClear={handleClear}
+        maxToolbarUnits={5}
+        pageKey="demo"
+        currentFilters={activeFilterState}
+        onLoadPreset={(filters, name) => {
+          console.log('Loaded preset:', name, filters);
+        }}
+        activePresetName={null}
+      />
 
-            {
-              id: 'select',
-              customComponent: <Demo />,
-              visible: true,
-              label: 'Select',
-              value: '',
-              onChange: () => {},
-              size: 1.5,
-              type: 'date',
-            },
-
-            {
-              id: 'checkbox',
-              customComponent: <DemoCheckbox />,
-              visible: true,
-              label: 'Checkbox',
-              value: '',
-              onChange: () => {},
-              size: 1.5,
-              type: 'date',
-            },
-            {
-              id: 'search input',
-              customComponent: <DemoSearch />,
-              visible: true,
-              label: 'Search',
-              value: '',
-              onChange: () => {},
-              size: 1.5,
-              type: 'date',
-            },
-          ]}
-          onVisibilityChange={() => {}}
-          onReorder={() => {}}
-          onSizeChange={() => {}}
-          onClear={() => {}}
-          maxToolbarUnits={0}
-          pageKey={''}
-          currentFilters={{}}
-          onLoadPreset={() => {}}
-          activePresetName={''}
-        />
-        <DataTable
-          data={dummyData}
-          pageSize={pageSize}
-          page={page}
-          onPageChange={(page) => {
-            setPage(page);
-          }}
-          onPageSizeChange={(pageSize) => {
-            setPageSize(pageSize);
-          }}
-        />
-      </div>
-    </>
+      <DataTable
+        data={dummyData}
+        pageSize={pageSize}
+        page={page}
+        onPageChange={(page) => setPage(page)}
+        onPageSizeChange={(pageSize) => setPageSize(pageSize)}
+      />
+    </div>
   );
 }
 
@@ -93,7 +141,19 @@ export default App;
 
 ('use client');
 
-import { Combobox, HStack, Portal, useFilter, useListCollection } from '@chakra-ui/react';
+import { Combobox, HStack, useFilter, useListCollection } from '@chakra-ui/react';
+
+const ComboboxRoot = withChildren(Combobox.Root);
+const ComboboxControl = withChildren(Combobox.Control);
+const ComboboxInput = withChildren(Combobox.Input);
+const ComboboxIndicatorGroup = withChildren(Combobox.IndicatorGroup);
+const ComboboxClearTrigger = withChildren(Combobox.ClearTrigger);
+const ComboboxTrigger = withChildren(Combobox.Trigger);
+const ComboboxPositioner = withChildren(Combobox.Positioner);
+const ComboboxContent = withChildren(Combobox.Content);
+const ComboboxEmpty = withChildren(Combobox.Empty);
+const ComboboxItem = withChildren(Combobox.Item);
+const ComboboxItemIndicator = withChildren(Combobox.ItemIndicator);
 
 const Demo = () => {
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -104,32 +164,32 @@ const Demo = () => {
   });
 
   return (
-    <Combobox.Root
+    <ComboboxRoot
       collection={collection}
       onInputValueChange={(e) => filter(e.inputValue)}
       size="sm"
     >
-      <Combobox.Control>
-        <Combobox.Input placeholder="Type to search" />
-        <Combobox.IndicatorGroup>
-          <Combobox.ClearTrigger />
-          <Combobox.Trigger />
-        </Combobox.IndicatorGroup>
-      </Combobox.Control>
-      <Portal>
-        <Combobox.Positioner>
-          <Combobox.Content>
-            <Combobox.Empty>No items found</Combobox.Empty>
-            {collection.items.map((item) => (
-              <Combobox.Item item={item} key={item.value}>
-                {item.label}
-                <Combobox.ItemIndicator />
-              </Combobox.Item>
-            ))}
-          </Combobox.Content>
-        </Combobox.Positioner>
-      </Portal>
-    </Combobox.Root>
+      <ComboboxControl>
+        <ComboboxInput placeholder="Type to search" />
+        <ComboboxIndicatorGroup>
+          <ComboboxClearTrigger />
+          <ComboboxTrigger />
+        </ComboboxIndicatorGroup>
+      </ComboboxControl>
+      {/* <Portal> */}
+      <ComboboxPositioner>
+        <ComboboxContent>
+          <ComboboxEmpty>No items found</ComboboxEmpty>
+          {collection.items.map((item) => (
+            <ComboboxItem item={item} key={item.value}>
+              {item.label}
+              <ComboboxItemIndicator />
+            </ComboboxItem>
+          ))}
+        </ComboboxContent>
+      </ComboboxPositioner>
+      {/* </Portal> */}
+    </ComboboxRoot>
   );
 };
 
@@ -148,43 +208,52 @@ const frameworks = [
 ];
 
 import { Field, Input } from '@chakra-ui/react';
+const FieldRoot = withChildren(Field.Root);
 
 const DemoSearch = () => {
   return (
-    <Field.Root>
+    <FieldRoot>
       <Input size={'sm'} placeholder="Search" />
-    </Field.Root>
+    </FieldRoot>
   );
 };
 
 import { Checkbox } from '@chakra-ui/react';
+import { IFilterConfig } from './components/filters/FilterTypes';
+import { loadOrder, saveOrder } from './components/filters/reorderStore';
+import { withChildren } from './utils/chakra-slot';
+
+const CheckboxRoot = withChildren(Checkbox.Root);
+const CheckboxHiddenInput = withChildren(Checkbox.HiddenInput);
+const CheckboxControl = withChildren(Checkbox.Control);
+const CheckboxLabel = withChildren(Checkbox.Label);
 
 const DemoCheckbox = () => {
   return (
     <HStack>
-      <Checkbox.Root disabled size={'sm'}>
-        <Checkbox.HiddenInput />
-        <Checkbox.Control />
-        <Checkbox.Label>Disabled</Checkbox.Label>
-      </Checkbox.Root>
+      <CheckboxRoot size={'sm'}>
+        <CheckboxHiddenInput />
+        <CheckboxControl />
+        <CheckboxLabel>open</CheckboxLabel>
+      </CheckboxRoot>
 
-      <Checkbox.Root defaultChecked disabled size={'sm'}>
-        <Checkbox.HiddenInput />
-        <Checkbox.Control />
-        <Checkbox.Label>Disabled</Checkbox.Label>
-      </Checkbox.Root>
+      <CheckboxRoot defaultChecked size={'sm'}>
+        <CheckboxHiddenInput />
+        <CheckboxControl />
+        <CheckboxLabel>Close</CheckboxLabel>
+      </CheckboxRoot>
 
-      <Checkbox.Root readOnly size={'sm'}>
-        <Checkbox.HiddenInput />
-        <Checkbox.Control />
-        <Checkbox.Label>Readonly</Checkbox.Label>
-      </Checkbox.Root>
+      <CheckboxRoot size={'sm'}>
+        <CheckboxHiddenInput />
+        <CheckboxControl />
+        <CheckboxLabel>Readonly</CheckboxLabel>
+      </CheckboxRoot>
 
-      <Checkbox.Root invalid size={'sm'}>
-        <Checkbox.HiddenInput />
-        <Checkbox.Control />
-        <Checkbox.Label>Invalid</Checkbox.Label>
-      </Checkbox.Root>
+      <CheckboxRoot invalid size={'sm'}>
+        <CheckboxHiddenInput />
+        <CheckboxControl />
+        <CheckboxLabel>Invalid</CheckboxLabel>
+      </CheckboxRoot>
     </HStack>
   );
 };

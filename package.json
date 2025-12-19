@@ -1,5 +1,5 @@
 {
-  "name": "mds-shared-ui",
+  "name": "@mdspl/mds-shared-ui",
   "version": "0.1.0",
   "description": "Chakra UI v3 DataTable with sorting, pagination, column visibility & drag reorder",
   "author": "magadh",

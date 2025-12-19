@@ -2,21 +2,24 @@
 
 import {
   Button,
-  Checkbox,
   CloseButton,
   Drawer,
   HStack,
   IconButton,
   Portal,
-  Slider,
   Tabs,
   Text,
   VStack,
 } from '@chakra-ui/react';
 
-import { Edit, Eye, Filter } from 'lucide-react';
+import { closestCenter, DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useStore } from '@tanstack/react-store';
+import { Bookmark, Delete, Edit2, Filter, Settings } from 'lucide-react';
 import { withChildren } from '../../utils/chakra-slot';
 import { IFilterDrawerProps } from './FilterTypes';
+import { addPreset, deletePreset, getPresets, presetStore } from './presetStore';
+import SortableFilterItem from './SortableFilterItem';
 
 const DrawerRoot = withChildren(Drawer.Root);
 const DrawerTrigger = withChildren(Drawer.Trigger);
@@ -28,16 +31,38 @@ const DrawerTitle = withChildren(Drawer.Title);
 const DrawerBody = withChildren(Drawer.Body);
 const DrawerFooter = withChildren(Drawer.Footer);
 const DrawerCloseTrigger = withChildren(Drawer.CloseTrigger);
+const TabsRoot = withChildren(Tabs.Root);
+const TabsList = withChildren(Tabs.List);
+const TabsTrigger = withChildren(Tabs.Trigger);
+const TabsContent = withChildren(Tabs.Content);
 
 export const FiltersDrawer = ({
   filterDrawerSize = 'sm',
   onVisibilityChange,
-  onReorder,
   onSizeChange,
   onClear,
-  maxToolbarUnits,
   filters,
+  pageKey = 'default',
+  currentFilters = {},
+  onLoadPreset,
+  activePresetName,
+  onReorder,
 }: IFilterDrawerProps) => {
+  // 👇 THIS IS THE SECRET
+  const state = useStore(presetStore);
+  const presets = state[pageKey] ?? getPresets(pageKey);
+
+  const handleSave = () => {
+    const name = prompt('Preset name?');
+    if (!name) return;
+    addPreset(pageKey, {
+      id: crypto.randomUUID(),
+      name,
+      date: new Date().toISOString(),
+      filters: currentFilters,
+    });
+  };
+
   return (
     <HStack wrap="wrap">
       <DrawerRoot size={filterDrawerSize}>
@@ -57,21 +82,25 @@ export const FiltersDrawer = ({
               </DrawerHeader>
 
               <DrawerBody overflowY="auto" pt={1}>
-                <Tabs.Root defaultValue="view">
-                  <Tabs.List mb={4}>
-                    <Tabs.Trigger value="view">
-                      <Eye size={16} />
-                      View
-                    </Tabs.Trigger>
-
-                    <Tabs.Trigger value="edit">
-                      <Edit size={16} />
+                <TabsRoot defaultValue="view">
+                  <TabsList mb={4}>
+                    <TabsTrigger value="view">
+                      <Edit2 size={16} />
                       Edit
-                    </Tabs.Trigger>
-                  </Tabs.List>
+                    </TabsTrigger>
 
-                  {/* VIEW MODE */}
-                  <Tabs.Content value="view">
+                    <TabsTrigger value="settings">
+                      <Settings size={16} />
+                      Settings
+                    </TabsTrigger>
+
+                    <TabsTrigger value="presets">
+                      <Bookmark size={16} />
+                      Presets
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="view">
                     {filters
                       .filter((f) => f.visible)
                       .map((f) => (
@@ -88,64 +117,97 @@ export const FiltersDrawer = ({
                           {f.customComponent}
                         </VStack>
                       ))}
-                  </Tabs.Content>
+                  </TabsContent>
 
-                  {/* EDIT MODE */}
-                  <Tabs.Content value="edit">
-                    {filters.map((f, i) => (
-                      <VStack
-                        key={f.id}
-                        align="stretch"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        rounded="md"
-                        p={3}
-                        mb={3}
+                  <TabsContent value="settings">
+                    <DndContext
+                      sensors={useSensors(useSensor(PointerSensor))}
+                      collisionDetection={closestCenter}
+                      onDragEnd={({ active, over }) => {
+                        if (!over || active.id === over.id) return;
+
+                        const oldIndex = filters.findIndex((f) => f.id === active.id);
+                        const newIndex = filters.findIndex((f) => f.id === over.id);
+
+                        const reordered = arrayMove(filters, oldIndex, newIndex);
+
+                        // saveOrder(pageKey, reordered);
+                        console.log(reordered);
+
+                        onReorder?.(reordered);
+                      }}
+                    >
+                      <SortableContext
+                        items={filters.map((f) => f.id)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <Text fontWeight="bold">{f.label}</Text>
+                        {filters.map((f) => (
+                          <SortableFilterItem
+                            key={f.id}
+                            filter={f}
+                            onVisibilityChange={onVisibilityChange}
+                            onSizeChange={onSizeChange}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </TabsContent>
 
-                        {/* VISIBLE */}
-                        <HStack justify="space-between">
-                          <Text fontSize="sm">Visible</Text>
-                          <Checkbox.Root
-                            checked={f.visible}
-                            onCheckedChange={(val) =>
-                              onVisibilityChange && onVisibilityChange(f.id, true)
-                            }
-                            size="sm"
-                          >
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control />
-                            {/* {/* <Checkbox.Label>Accept terms and conditions</Checkbox.Label> */}
-                          </Checkbox.Root>
+                  {/* PRESETS */}
+                  <TabsContent value="presets">
+                    <VStack align="stretch" mb={3}>
+                      <Button size="sm" colorScheme="blue" onClick={handleSave}>
+                        Save Current Filters
+                      </Button>
+
+                      {presets.length === 0 && (
+                        <Text fontSize="xs" color="gray.500">
+                          No presets saved yet.
+                        </Text>
+                      )}
+
+                      {presets.map((p) => (
+                        <HStack
+                          key={p.id}
+                          justify="space-between"
+                          border="1px solid"
+                          borderColor={activePresetName === p.name ? 'blue.300' : 'gray.200'}
+                          rounded="md"
+                          p={2}
+                        >
+                          <VStack align="start" gap={0}>
+                            <Text fontWeight="bold" fontSize="sm">
+                              {p.name}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">
+                              {new Date(p.date).toLocaleDateString()}
+                            </Text>
+                          </VStack>
+
+                          <HStack>
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              onClick={() => onLoadPreset?.(p.filters, p.name)}
+                            >
+                              Load
+                            </Button>
+
+                            <IconButton
+                              size="xs"
+                              aria-label="Delete preset"
+                              variant="ghost"
+                              onClick={() => deletePreset(pageKey, p.id)}
+                            >
+                              <Delete size={14} />
+                            </IconButton>
+                          </HStack>
                         </HStack>
-
-                        {/* SIZE */}
-                        <VStack align="stretch" gap={1}>
-                          <Text fontSize="sm">Size</Text>
-                          <Slider.Root
-                            width="200px"
-                            min={0.5}
-                            max={5}
-                            step={0.5}
-                            value={[f.size ?? 1]}
-                            onChange={(val) => onSizeChange && onSizeChange(f.id, val[0])}
-                          >
-                            <Slider.Control>
-                              <Slider.Track>
-                                <Slider.Range />
-                              </Slider.Track>
-                              <Slider.Thumbs />
-                            </Slider.Control>
-                          </Slider.Root>
-                        </VStack>
-                      </VStack>
-                    ))}
-                  </Tabs.Content>
-                </Tabs.Root>
+                      ))}
+                    </VStack>
+                  </TabsContent>
+                </TabsRoot>
               </DrawerBody>
-
-              {/* <Divider my={3} /> */}
 
               <DrawerFooter justify="space-between">
                 <Button
@@ -156,6 +218,7 @@ export const FiltersDrawer = ({
                 >
                   Clear All
                 </Button>
+
                 <DrawerCloseTrigger asChild>
                   <CloseButton />
                 </DrawerCloseTrigger>

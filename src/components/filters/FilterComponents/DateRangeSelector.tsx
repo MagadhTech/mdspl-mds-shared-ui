@@ -27,6 +27,9 @@ import {
 } from '../shared/dateUtils';
 
 const PopoverRoot = withChildren(Popover.Root);
+const PopoverTrigger = withChildren(Popover.Trigger);
+const PopoverContent = withChildren(Popover.Content);
+const PopoverPositioner = withChildren(Popover.Positioner);
 
 export default function DateRangeFilter({
   value,
@@ -184,13 +187,13 @@ export default function DateRangeFilter({
     <InputGroup>
       <>
         <InputElement position={'revert'}>
-          <Popover.Root
+          <PopoverRoot
             open={isPopoverOpen}
             onEscapeKeyDown={() => {
               setIsPopoverOpen(false);
             }}
           >
-            <Popover.Trigger asChild>
+            <PopoverTrigger asChild>
               <IconButton
                 size="sm"
                 variant="ghost"
@@ -199,11 +202,11 @@ export default function DateRangeFilter({
               >
                 <Calendar size={16} />
               </IconButton>
-            </Popover.Trigger>
+            </PopoverTrigger>
 
             <Portal>
-              <Popover.Positioner>
-                <Popover.Content p={4}>
+              <PopoverPositioner>
+                <PopoverContent p={4}>
                   <PopoverArrow />
                   <VStack align="start" gap={4}>
                     <HStack>
@@ -243,10 +246,10 @@ export default function DateRangeFilter({
                       </HStack>
                     </VStack>
                   </VStack>
-                </Popover.Content>
-              </Popover.Positioner>
+                </PopoverContent>
+              </PopoverPositioner>
             </Portal>
-          </Popover.Root>
+          </PopoverRoot>
 
           <Input
             ref={inputRef}
