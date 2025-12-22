@@ -40,15 +40,13 @@ export default function TableHeader() {
           <Table.Row height={'28px'}>
             {visibleOrderedColumns.map((col, index) => {
               const isSorted = sortColumn === col?.id;
-              const isLast = index === visibleOrderedColumns.length - 1;
-
               return (
                 <SortableHeaderCell
                   key={col?.id}
                   id={col?.id}
                   onClick={() => col?.sortable && sortByColumn(col?.id)}
                   cursor={col?.sortable ? 'pointer' : 'default'}
-                  borderRight={!isLast ? '2px solid' : undefined}
+                  borderRight="2px solid #dcdcdc"
                 >
                   <span
                     style={{
@@ -75,9 +73,7 @@ export default function TableHeader() {
               );
             })}
 
-            <Table.ColumnHeader borderRight="2px solid" borderRightColor="gray.300">
-              Actions
-            </Table.ColumnHeader>
+            <Table.ColumnHeader borderRight="2px solid #dcdcdc">Actions</Table.ColumnHeader>
 
             <Table.ColumnHeader boxSize={'0.5'}>
               <ColumnVisibilityMenu visibility={visibility} onToggle={toggleColumn} />
