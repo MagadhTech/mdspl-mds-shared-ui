@@ -1,3 +1,5 @@
+import { JSX } from 'react';
+
 export type DensityType = 'sm' | 'md' | 'lg';
 export type SortOrder = 'asc' | 'desc';
 
@@ -11,7 +13,7 @@ export interface Column<T = unknown> {
 }
 
 export interface DataTableAction<T = unknown> {
-  icon: React.ReactNode;
+  icon: JSX.Element;
   label: string;
   onClick: (row: T) => void;
   colorScheme?:
@@ -27,17 +29,14 @@ export interface DataTableAction<T = unknown> {
     | 'pink';
 }
 
-
 export interface DataTableProps<T = unknown> {
-  // headers: Column<T>[];
+  headers?: Column<T>[];
   data?: T[];
   loading?: boolean;
   emptyMessage?: string;
   actions?: DataTableAction<T>[];
-  showIndex?: boolean;
   page?: number;
   pageSize?: number;
-  hideHeaderList?: Record<string, boolean>;
   onPageChange?: (page: number) => void | undefined;
   onPageSizeChange?: (size: number) => void | undefined;
   density?: DensityType;

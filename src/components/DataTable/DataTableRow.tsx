@@ -1,14 +1,23 @@
 'use client';
 
-import { Table } from '@chakra-ui/react';
+import { IconButton, Menu, Portal, Table } from '@chakra-ui/react';
 import { useStore } from '@tanstack/react-store';
-import { Edit, Trash } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
+import { withChildren } from '../../utils/chakra-slot';
 import { tableStore } from './tableStore';
+import { DataTableAction } from './types';
+
+const MenuItem = withChildren(Menu.Item);
+const MenuContent = withChildren(Menu.Content);
+const MenuPositioner = withChildren(Menu.Positioner);
+const MenuTrigger = withChildren(Menu.Trigger);
 
 export default function TableRows({
   data = [] as Array<Record<string, any>>,
+  actions = [],
 }: {
   data: Array<Record<string, any>>;
+  actions?: DataTableAction<any>[];
 }) {
   const { columnOrder, visibility } = useStore(tableStore);
 
@@ -17,14 +26,36 @@ export default function TableRows({
       {data.map((row) => (
         <Table.Row key={row.id}>
           {columnOrder
-            .filter((id) => visibility[id])
+            .filter((id) => visibility[id.id])
             .map((id) => (
-              <Table.Cell key={id}>{row[id]}</Table.Cell>
+              <Table.Cell key={id.id}>{row[id.id]}</Table.Cell>
             ))}
 
           <Table.Cell textAlign="center" display="flex" gap={2}>
-            <Edit size={16} />
-            <Trash size={16} />
+            <Menu.Root>
+              <MenuTrigger asChild>
+                <IconButton aria-label="Open" variant="ghost" size="sm">
+                  <MoreHorizontal size={16} />
+                </IconButton>
+              </MenuTrigger>
+              <Portal>
+                <MenuPositioner>
+                  <MenuContent>
+                    {actions.map((action) => (
+                      <MenuItem
+                        key={action.label}
+                        onClick={action.onClick}
+                        colorScheme={action.colorScheme}
+                        value={action.label}
+                      >
+                        {action.icon}
+                        {action.label}
+                      </MenuItem>
+                    ))}
+                  </MenuContent>
+                </MenuPositioner>
+              </Portal>
+            </Menu.Root>
           </Table.Cell>
         </Table.Row>
       ))}

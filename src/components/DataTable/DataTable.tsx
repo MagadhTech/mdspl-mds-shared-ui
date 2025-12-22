@@ -10,21 +10,19 @@ import { setData, tableStore } from './tableStore';
 import { DataTableProps } from './types';
 
 export default function DataTable<T extends Record<string, unknown>>({
-  // headers,
   data: rowData = [],
+  headers = [],
   loading = false,
   emptyMessage = 'No data',
   actions,
-  showIndex = true,
   page = 0,
   pageSize = 10,
-  hideHeaderList = {},
   onPageChange,
   onPageSizeChange,
   density = 'sm',
 }: DataTableProps<T>) {
   useMemo(() => {
-    setData(rowData);
+    setData(rowData, headers);
   }, [rowData]);
 
   const { sortColumn, sortDirection, data: newData } = useStore(tableStore);
@@ -44,13 +42,24 @@ export default function DataTable<T extends Record<string, unknown>>({
     return data.slice(start, start + pageSize);
   }, [page, pageSize, sortColumn, sortDirection]);
 
+
   return (
     <Box h="100%" display="flex" flexDirection="column" p={2} pt={2} minHeight={0}>
       <Box flex="1" minHeight={0} overflow="auto">
-        <Table.Root variant="outline" w="100%" size={density}>
-          <TableHeader />
-          <TableRows data={processedData} />
-        </Table.Root>
+        {loading ? (
+          <Box display="flex" alignItems="center" justifyContent="center" h="100%" color="gray.500">
+            Loading...
+          </Box>
+        ) : processedData.length === 0 ? (
+          <Box display="flex" alignItems="center" justifyContent="center" h="100%" color="gray.500">
+            {emptyMessage}
+          </Box>
+        ) : (
+          <Table.Root variant="outline" w="100%" size={density}>
+            <TableHeader />
+            <TableRows data={processedData} actions={actions} />
+          </Table.Root>
+        )}
       </Box>
 
       <Box mt={0.5}>

@@ -4,6 +4,13 @@ import DateRangeFilter from './components/filters/FilterComponents/DateRangeSele
 import { FiltersToolBar } from './components/filters/Filters';
 import { dummyData } from './dummy/data';
 
+const headers = [
+  { id: 'id', label: 'ID' },
+  { id: 'name', label: 'User Name' },
+  { id: 'email', label: 'Email' },
+  { id: 'role', label: 'Role' },
+];
+
 function App() {
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
@@ -136,6 +143,21 @@ function App() {
         page={page}
         onPageChange={(page) => setPage(page)}
         onPageSizeChange={(pageSize) => setPageSize(pageSize)}
+        headers={headers}
+        actions={[
+          {
+            icon: <Edit size={14} />,
+            label: 'Edit',
+            onClick: () => console.log('Edit'),
+            colorScheme: 'blue',
+          },
+          {
+            icon: <Trash size={14} />,
+            label: 'Delete',
+            onClick: () => console.log('Edit'),
+            colorScheme: 'red',
+          },
+        ]}
       />
     </div>
   );
@@ -223,6 +245,7 @@ const DemoSearch = () => {
 };
 
 import { Checkbox } from '@chakra-ui/react';
+import { Edit, Trash } from 'lucide-react';
 import { IFilterConfig } from './components/filters/FilterTypes';
 import { loadOrder, saveOrder } from './components/filters/reorderStore';
 import { withChildren } from './utils/chakra-slot';

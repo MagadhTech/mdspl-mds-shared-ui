@@ -11,29 +11,32 @@ import SortableHeaderCell from './SortableHeaderCell';
 import { tableStore } from './tableStore';
 
 export default function TableHeader() {
-  const { columnOrder, visibility, sortColumn, sortDirection, sortebleColumns } =
+  const { columnOrder, visibility, sortColumn, sortDirection, sortableColumns } =
     useStore(tableStore);
 
-  console.log(columnOrder, 'fomr header');
-
   const visibleOrderedColumns = columnOrder
-    .map((id) => sortebleColumns.find((c) => c.id === id)!)
-    .filter((c) => visibility[c.id]);
+    .map((col) => sortableColumns.find((c) => c.id === col.id))
+    .filter((c) => c !== undefined)
+    .filter((c) => visibility[c!.id]);
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = columnOrder.indexOf(active.id as string);
-    const newIndex = columnOrder.indexOf(over.id as string);
+    const oldIndex = columnOrder.findIndex((col) => col.id === active.id);
+    const newIndex = columnOrder.findIndex((col) => col.id === over.id);
 
-    setColumnOrder(arrayMove(columnOrder, oldIndex, newIndex));
+    const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
+    setColumnOrder(newOrder);
   };
 
   return (
     <Table.Header background={'gray.100'} position="sticky" top={0} p="0">
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+        <SortableContext
+          items={columnOrder.map((col) => col.id)}
+          strategy={horizontalListSortingStrategy}
+        >
           <Table.Row height={'28px'}>
             {visibleOrderedColumns.map((col, index) => {
               const isSorted = sortColumn === col?.id;

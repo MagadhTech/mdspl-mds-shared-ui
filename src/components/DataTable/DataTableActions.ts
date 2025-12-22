@@ -1,6 +1,7 @@
 import { tableStore } from './tableStore';
+import { Column } from './types';
 
-export const setColumnOrder = (order: string[]) => {
+export const setColumnOrder = (order: Column<any>[]) => {
   tableStore.setState((s) => ({ ...s, columnOrder: order }));
 };
 

@@ -20,7 +20,7 @@ const CheckboxHiddenInput = withChildren(Checkbox.HiddenInput);
 const CheckboxControl = withChildren(Checkbox.Control);
 
 export default function ColumnVisibilityMenu({ visibility, onToggle }: Props) {
-  const { sortebleColumns } = useStore(tableStore);
+  const { sortableColumns } = useStore(tableStore);
   return (
     <Menu.Root closeOnSelect={false}>
       <MenuTrigger asChild>
@@ -32,7 +32,7 @@ export default function ColumnVisibilityMenu({ visibility, onToggle }: Props) {
       <Portal>
         <MenuPositioner>
           <MenuContent minW="220px">
-            {sortebleColumns.map((col) => {
+            {sortableColumns.map((col) => {
               const isChecked = Boolean(visibility[col.id]);
 
               return (
