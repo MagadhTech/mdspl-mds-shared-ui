@@ -44,7 +44,7 @@ export default function TableRows({
                     {actions.map((action) => (
                       <MenuItem
                         key={action.label}
-                        onClick={action.onClick(row)}
+                        onClick={() => action.onClick(row)}
                         colorScheme={action.colorScheme}
                         value={action.label}
                       >
