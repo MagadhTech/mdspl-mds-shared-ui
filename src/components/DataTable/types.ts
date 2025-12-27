@@ -30,6 +30,7 @@ export interface DataTableAction<T = unknown> {
 }
 
 export interface DataTableProps<T = unknown> {
+  tableId: string;
   headers?: Column<T>[];
   data?: T[];
   loading?: boolean;
@@ -40,4 +41,6 @@ export interface DataTableProps<T = unknown> {
   onPageChange?: (page: number) => void | undefined;
   onPageSizeChange?: (size: number) => void | undefined;
   density?: DensityType;
+  totalCount?: number;
+  paginationMode?: 'server' | 'client';
 }

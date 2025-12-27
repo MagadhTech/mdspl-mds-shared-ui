@@ -140,7 +140,9 @@ function App() {
       <DataTable
         data={dummyData}
         pageSize={pageSize}
+        tableId="onslldj"
         page={page}
+        totalCount={dummyData.length}
         onPageChange={(page) => setPage(page)}
         onPageSizeChange={(pageSize) => setPageSize(pageSize)}
         headers={headers}

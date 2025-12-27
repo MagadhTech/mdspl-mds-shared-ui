@@ -6,10 +6,11 @@ import { useEffect, useMemo } from 'react';
 import TableHeader from './DataTableHeader';
 import TablePagination from './DataTablePagination';
 import TableRows from './DataTableRow';
-import { setData, tableStore } from './tableStore';
+import { setData, setTableId, tableStore } from './tableStore';
 import { DataTableProps } from './types';
 
 export default function DataTable<T extends Record<string, unknown>>({
+  tableId,
   data: rowData = [],
   headers = [],
   loading = false,
@@ -20,28 +21,37 @@ export default function DataTable<T extends Record<string, unknown>>({
   onPageChange,
   onPageSizeChange,
   density = 'sm',
+  totalCount = 0,
+  paginationMode = 'client',
 }: DataTableProps<T>) {
   useEffect(() => {
+    setTableId(tableId);
+  }, [tableId]);
+
+  useEffect(() => {
     setData(rowData, headers);
-  }, [rowData]);
+  }, [rowData, headers]);
 
   const { sortColumn, sortDirection, data: newData } = useStore(tableStore);
 
   const processedData = useMemo(() => {
-    const data = [...newData];
+  const data = [...newData];
 
-    if (sortColumn) {
-      data.sort((a, b) =>
-        sortDirection === 'asc'
-          ? String(a[sortColumn]).localeCompare(String(b[sortColumn]))
-          : String(b[sortColumn]).localeCompare(String(a[sortColumn])),
-      );
-    }
+  if (sortColumn) {
+    data.sort((a, b) =>
+      sortDirection === 'asc'
+        ? String(a[sortColumn]).localeCompare(String(b[sortColumn]))
+        : String(b[sortColumn]).localeCompare(String(a[sortColumn])),
+    );
+  }
 
-    const start = (page - 1) * pageSize;
+  if (paginationMode === 'client') {
+    const start = page * pageSize; // 0-based
     return data.slice(start, start + pageSize);
-  }, [page, pageSize, sortColumn, sortDirection, newData]);
+  }
 
+  return data;
+}, [newData, sortColumn, sortDirection, page, pageSize, paginationMode]);
 
   return (
     <Box h="100%" display="flex" flexDirection="column" p={2} pt={2} minHeight={0}>
@@ -64,7 +74,7 @@ export default function DataTable<T extends Record<string, unknown>>({
 
       <Box mt={0.5}>
         <TablePagination
-          totalCount={rowData.length}
+          totalCount={totalCount}
           pageSize={pageSize}
           currentPage={page}
           onPageChange={onPageChange}

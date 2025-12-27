@@ -1,7 +1,16 @@
 import { tableStore } from './tableStore';
 import { Column } from './types';
 
+export const getColumnOrderKey = (tableId: string) => `table_column_order_v1:${tableId}`;
+
 export const setColumnOrder = (order: Column<any>[]) => {
+  const { tableId } = tableStore.state;
+  localStorage.setItem(getColumnOrderKey(tableId), JSON.stringify(order.map((c) => c.id)));
+
+  tableStore.setState((s) => ({
+    ...s,
+    columnOrder: order,
+  }));
   tableStore.setState((s) => ({ ...s, columnOrder: order }));
 };
 
