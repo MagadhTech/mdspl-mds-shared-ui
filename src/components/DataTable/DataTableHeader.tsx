@@ -20,7 +20,9 @@ export default function TableHeader() {
       <Table.Row height={'28px'}>
         {actionsConfig?.showSNo && (
           <Table.ColumnHeader
-            width="20px"
+            width="80px"
+            minW={80}
+            maxW={80}
             textAlign="center"
             backgroundColor={actionsConfig.backgroundColor}
             borderRight="2px solid #dcdcdc"
@@ -31,6 +33,7 @@ export default function TableHeader() {
 
         {visibleOrderedColumns.map((col) => {
           const isSorted = sortColumn === col?.id;
+          const minW = col.minWidth;
           return (
             <SortableHeaderCell
               key={col?.id}
@@ -38,6 +41,7 @@ export default function TableHeader() {
               onClick={() => col?.sortable && sortByColumn(col?.id)}
               borderRight="2px solid #dcdcdc"
               backgroundColor={col?.backgroundColor}
+              minW={minW}
             >
               <span
                 style={{
@@ -77,6 +81,7 @@ export default function TableHeader() {
           <Table.ColumnHeader
             boxSize={'0.5'}
             backgroundColor={actionsConfig.backgroundColorColumnVisibilityMenu}
+            width="50px"
           >
             <ColumnVisibilityMenu visibility={visibility} onToggle={toggleColumn} />
           </Table.ColumnHeader>

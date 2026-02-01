@@ -5,7 +5,7 @@ export type SortOrder = 'asc' | 'desc';
 
 export interface Column {
   id: string;
-  label: string;
+  label: string | React.ReactNode;
   minWidth?: number | string;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
@@ -39,6 +39,19 @@ export type ActionHeaderProps = {
   backgroundColorColumnVisibilityMenu?: string;
   showSNo?: boolean;
   indexChildren?: React.ReactNode;
+};
+
+// export type DataTableRow<T> = {
+//   __key?: string | number;
+//   __raw?: T;
+//   id ?: string | number
+// } & Record<string, React.ReactNode>;
+
+export type DataTableRow<T> = {
+  __key?: string | number;
+  __raw: T;
+  id?: string | number;
+  cells?: Record<string, React.ReactNode>;
 };
 
 export interface DataTableProps<T> {

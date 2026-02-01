@@ -8,17 +8,18 @@ import { DemoFilter } from './demoFilter';
 import { dummyData } from './dummy/data';
 
 const headers = [
-  { id: 'id', label: 'ID' },
-  { id: 'name', label: 'User Name' },
-  { id: 'email', label: 'Email' },
-  { id: 'role', label: 'Role' },
+  { id: 'name', label: 'User Name', minWidth: 400 },
+  { id: 'email', label: 'Email', minWidth: 400 },
+  { id: 'role', label: 'Role', minWidth: 400 },
+  { id: 'status', label: 'Status', minWidth: 400 },
+  { id: 'joinDate', label: 'Join Date', minWidth: 400 },
 ];
 
 function App() {
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
-  const [openConfirm, setOpenConfirm] = useState(false); // [id, ]
+  const [openConfirm, setOpenConfirm] = useState(false);
 
   return (
     <div
@@ -59,6 +60,8 @@ function App() {
         actionConfig={{
           showSNo: true,
           showActionColumn: true,
+          width: '100px',
+          showColumnVisibilityMenu: true,
         }}
         actions={[
           {
@@ -73,7 +76,7 @@ function App() {
             label: 'Delete',
             onClick: () => setOpen(true),
             colorScheme: 'red',
-            visible: (row) => row.__key % 2 === 0,
+            // visible: (row) => row.__key % 2 === 0,
           },
         ]}
       />

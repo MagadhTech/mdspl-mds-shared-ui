@@ -1,6 +1,6 @@
 {
   "name": "@mdspl/mds-shared-ui",
-  "version": "1.1.8",
+  "version": "1.2.3",
   "description": "Chakra UI v3 DataTable with sorting, pagination, column visibility & drag reorder",
   "author": "magadh",
   "license": "MIT",
@@ -17,10 +17,10 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc -p tsconfig.build.json && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --host",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {

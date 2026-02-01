@@ -16,6 +16,7 @@ interface TableState {
     label: string | React.ReactNode;
     sortable: boolean;
     backgroundColor?: string;
+    minWidth?: number | string;
   }[];
   actionsConfig?: ActionHeaderProps;
 }
@@ -88,6 +89,7 @@ export function setData(newData: any[], headers?: Column[]) {
       label: col.label,
       sortable: true,
       backgroundColor: col.backgroundColor,
+      minWidth: col.minWidth,
     })),
   }));
 }

@@ -102,17 +102,34 @@ export function getVisibleOrderedColumns({
 }
 
 
+// export function setColumnWidth(columnId: string, width: number) {
+//   tableStore.setState((prev) => {
+//     const updated = {
+//       ...prev.columnWidths,
+//       [columnId]: Math.max(60, width), // min width
+//     };
+
+//     localStorage.setItem(
+//       getColumnWidthKey(prev.tableId),
+//       JSON.stringify(updated),
+//     );
+
+//     return { ...prev, columnWidths: updated };
+//   });
+// }
+
 export function setColumnWidth(columnId: string, width: number) {
   tableStore.setState((prev) => {
+    const col = prev.columnOrder.find(c => c.id === columnId);
+    const min =
+      typeof col?.minWidth === 'number' ? col.minWidth : 120;
+
     const updated = {
       ...prev.columnWidths,
-      [columnId]: Math.max(60, width), // min width
+      [columnId]: Math.max(min, width),
     };
 
-    localStorage.setItem(
-      getColumnWidthKey(prev.tableId),
-      JSON.stringify(updated),
-    );
+    localStorage.setItem(getColumnWidthKey(prev.tableId), JSON.stringify(updated));
 
     return { ...prev, columnWidths: updated };
   });

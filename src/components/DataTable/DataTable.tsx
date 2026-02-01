@@ -5,15 +5,16 @@ import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useStore } from '@tanstack/react-store';
 import { useEffect, useMemo } from 'react';
+import { formatDataTableRows } from '../../utils/FormatCell';
 import { setColumnOrder } from './DataTableActions';
 import TableHeader from './DataTableHeader';
 import TablePagination from './DataTablePagination';
 import TableRows from './DataTableRow';
 import DataTableSkeleton from './DataTableSkeleton';
 import { setActionsConfig, setData, setTableId, tableStore } from './tableStore';
-import { DataTableProps } from './types';
+import { DataTableProps, DataTableRow } from './types';
 
-export default function DataTable<T extends Record<string, unknown>>({
+export default function DataTable<T>({
   tableId,
   data: rowData = [],
   headers = [],
@@ -91,6 +92,10 @@ export default function DataTable<T extends Record<string, unknown>>({
   const showSkeleton = skeletonLoading && !loading;
   const showEmpty = !loading && !skeletonLoading && processedData.length === 0;
 
+  const formattedRows = useMemo<DataTableRow<T>[]>(() => {
+    return formatDataTableRows(processedData, columnOrder);
+  }, [processedData, columnOrder]);
+
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext
@@ -98,7 +103,7 @@ export default function DataTable<T extends Record<string, unknown>>({
         strategy={horizontalListSortingStrategy}
       >
         <Box flex="1" minH={0} display="flex" flexDirection="column" p={2}>
-          <Box flex="1" minH={0} position="relative" overflow="auto">
+          <Box flex="1" minH={0} position="relative" overflowX="auto" overflowY="auto">
             {showOverlayLoader && (
               <Box
                 position="absolute"
@@ -113,7 +118,14 @@ export default function DataTable<T extends Record<string, unknown>>({
               </Box>
             )}
 
-            <Table.Root variant="outline" w="100%" size={density} key={tableId}>
+            <Table.Root
+              variant="outline"
+              w="100%"
+              size={density}
+              key={tableId}
+              tableLayout={'fixed'}
+              minW={'max-content'}
+            >
               <TableHeader />
 
               {showSkeleton ? (
@@ -136,7 +148,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                 </Table.Body>
               ) : (
                 <TableRows
-                  data={processedData}
+                  data={formattedRows}
                   actions={actions}
                   actionConfig={actionConfig}
                   onRowSelect={onRowSelect}

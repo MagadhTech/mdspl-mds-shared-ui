@@ -17,6 +17,7 @@ export default function SortableHeaderCell({
   cursor,
   borderRight,
   backgroundColor,
+  minW,
 }: {
   id: string;
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export default function SortableHeaderCell({
   cursor?: string;
   borderRight?: string;
   backgroundColor?: string;
+  minW?: string | number;
 }) {
   const { columnWidths } = useStore(tableStore);
   const width = columnWidths[id];
@@ -59,7 +61,7 @@ export default function SortableHeaderCell({
       onClick={onClick}
       backgroundColor={backgroundColor}
       w={width ? `${width}px` : undefined}
-      minW="60px"
+      minW={minW}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
@@ -68,7 +70,7 @@ export default function SortableHeaderCell({
       }}
       {...attributes}
     >
-      <HStack position="relative" onMouseDown={onMouseDown}>
+      <HStack position="relative">
         <span {...listeners}>
           <GripVertical
             size={12}
