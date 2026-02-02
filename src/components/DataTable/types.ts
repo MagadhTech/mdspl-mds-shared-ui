@@ -3,74 +3,52 @@ import React, { JSX } from 'react';
 export type DensityType = 'sm' | 'md' | 'lg';
 export type SortOrder = 'asc' | 'desc';
 
-export interface Column {
-  id: string;
+export const ACTIONS_COLUMN_ID = '__actions__' as const;
+export const VISIBILITY_COLUMN_ID = '__visibility__' as const;
+
+interface BaseColumn {
   label: string | React.ReactNode;
   minWidth?: number | string;
+  backgroundColor?: string;
+}
+
+interface DataColumn<T> extends BaseColumn {
+  type?: 'data';
+  id: keyof T & string;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
-  backgroundColor?: string;
+  render?: (row: T) => React.ReactNode;
 }
 
-export interface DataTableAction<T> {
-  icon: JSX.Element;
-  label: string;
-  onClick: (row: T) => void;
-  visible?: (row: T) => boolean;
-  colorScheme?:
-    | 'gray'
-    | 'red'
-    | 'orange'
-    | 'yellow'
-    | 'green'
-    | 'teal'
-    | 'blue'
-    | 'cyan'
-    | 'purple'
-    | 'pink';
+interface ActionColumn<T> extends BaseColumn {
+  type: 'actions';
+  id: typeof ACTIONS_COLUMN_ID;
+  render: (row: T) => React.ReactNode;
 }
 
-export type ActionHeaderProps = {
-  backgroundColor?: string;
-  children?: React.ReactNode;
-  showActionColumn?: boolean;
-  width?: string;
-  showColumnVisibilityMenu?: boolean;
-  backgroundColorColumnVisibilityMenu?: string;
-  showSNo?: boolean;
-  indexChildren?: React.ReactNode;
-};
+interface VisibilityColumn extends BaseColumn {
+  type: 'visibility';
+  id: typeof VISIBILITY_COLUMN_ID;
+}
 
-// export type DataTableRow<T> = {
-//   __key?: string | number;
-//   __raw?: T;
-//   id ?: string | number
-// } & Record<string, React.ReactNode>;
-
-export type DataTableRow<T> = {
-  __key?: string | number;
-  __raw: T;
-  id?: string | number;
-  cells?: Record<string, React.ReactNode>;
-};
+export type Column<T> = DataColumn<T> | ActionColumn<T> | VisibilityColumn;
 
 export interface DataTableProps<T> {
   tableId: string;
-  headers?: Column[];
-  data?: T[];
+  headers: Column<T>[];
+  data: T[];
   loading?: boolean;
   emptyMessage?: string;
-  actions?: DataTableAction<T>[];
   page?: number;
   pageSize?: number;
-  onPageChange?: (page: number) => void | undefined;
-  onPageSizeChange?: (size: number) => void | undefined;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
   density?: DensityType;
   totalCount?: number;
-  actionConfig?: ActionHeaderProps;
   loadingChildren?: JSX.Element;
   skeletonLoading?: boolean;
   pageSizeOptions?: number[];
   onRowSelect?: (row: T, event?: React.MouseEvent) => void;
   onRowSelectEvent?: 'left' | 'right';
+  enableColumnVisibility?: boolean;
 }

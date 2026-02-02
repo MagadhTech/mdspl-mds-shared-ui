@@ -1,18 +1,18 @@
 'use client';
 
 import { Box, Spinner, Table } from '@chakra-ui/react';
-import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
+import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { useStore } from '@tanstack/react-store';
 import { useEffect, useMemo } from 'react';
-import { formatDataTableRows } from '../../utils/FormatCell';
+
 import { setColumnOrder } from './DataTableActions';
 import TableHeader from './DataTableHeader';
 import TablePagination from './DataTablePagination';
 import TableRows from './DataTableRow';
 import DataTableSkeleton from './DataTableSkeleton';
-import { setActionsConfig, setData, setTableId, tableStore } from './tableStore';
-import { DataTableProps, DataTableRow } from './types';
+import { setData, setTableId, tableStore } from './tableStore';
+import { DataTableProps } from './types';
 
 export default function DataTable<T>({
   tableId,
@@ -22,88 +22,75 @@ export default function DataTable<T>({
   loadingChildren,
   skeletonLoading = false,
   emptyMessage = 'No data',
-  actions,
   page = 1,
   pageSize = 10,
   onPageChange,
   onPageSizeChange,
   density = 'sm',
   totalCount = 0,
-  actionConfig,
   pageSizeOptions,
   onRowSelect,
   onRowSelectEvent = 'left',
+  enableColumnVisibility = true,
 }: DataTableProps<T>) {
+  /* ---------------- store sync ---------------- */
+
   useEffect(() => {
     setTableId(tableId);
   }, [tableId]);
 
   useEffect(() => {
-    setData(rowData, headers);
-  }, [rowData, headers]);
+    setData(rowData, headers, enableColumnVisibility);
+  }, [rowData, headers, enableColumnVisibility]);
 
-  useEffect(() => {
-    if (actionConfig) {
-      setActionsConfig(actionConfig);
-    }
-  }, [actionConfig]);
+  const { sortColumn, sortDirection, data, columnOrder } = useStore(tableStore);
 
-  const { sortColumn, sortDirection, data: newData, columnOrder } = useStore(tableStore);
+  const effectiveColumns = useMemo(
+    () => (columnOrder.length ? columnOrder : headers),
+    [columnOrder, headers],
+  );
 
   const processedData = useMemo(() => {
-    const data = [...newData];
-    const safePage = Math.max(1, page || 1);
+    if (!sortColumn) return data;
 
-    if (sortColumn) {
-      data.sort((a, b) =>
-        sortDirection === 'asc'
-          ? String(a[sortColumn]).localeCompare(String(b[sortColumn]))
-          : String(b[sortColumn]).localeCompare(String(a[sortColumn])),
-      );
-    }
+    return [...data].sort((a, b) =>
+      sortDirection === 'asc'
+        ? String(a[sortColumn]).localeCompare(String(b[sortColumn]))
+        : String(b[sortColumn]).localeCompare(String(a[sortColumn])),
+    );
+  }, [data, sortColumn, sortDirection]);
 
-    return data;
-  }, [newData, sortColumn, sortDirection, page, pageSize]);
+  /* ---------------- pagination ---------------- */
 
-  // const startIndex = (page - 1) * pageSize;
-  const startIndex = useMemo(() => {
-    const safePage = Math.max(1, page || 1);
-    return (safePage - 1) * pageSize;
-  }, [page, pageSize]);
+  const startIndex = useMemo(() => (Math.max(1, page) - 1) * pageSize, [page, pageSize]);
 
-  useEffect(() => {
-    if (page < 1 && onPageChange) {
-      onPageChange(1);
-    }
-  }, [page, onPageChange]);
+  const paginatedData = useMemo(
+    () => processedData.slice(startIndex, startIndex + pageSize),
+    [processedData, startIndex, pageSize],
+  );
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = columnOrder.findIndex((col) => col.id === active.id);
-    const newIndex = columnOrder.findIndex((col) => col.id === over.id);
+    const oldIndex = effectiveColumns.findIndex((c) => c.id === active.id);
+    const newIndex = effectiveColumns.findIndex((c) => c.id === over.id);
 
-    const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
-    setColumnOrder(newOrder);
+    setColumnOrder(arrayMove(effectiveColumns, oldIndex, newIndex));
   };
 
   const showOverlayLoader = loading && !skeletonLoading;
   const showSkeleton = skeletonLoading && !loading;
   const showEmpty = !loading && !skeletonLoading && processedData.length === 0;
 
-  const formattedRows = useMemo<DataTableRow<T>[]>(() => {
-    return formatDataTableRows(processedData, columnOrder);
-  }, [processedData, columnOrder]);
-
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext
-        items={columnOrder.map((c) => c.id)}
+        items={effectiveColumns.map((c) => c.id)}
         strategy={horizontalListSortingStrategy}
       >
         <Box flex="1" minH={0} display="flex" flexDirection="column" p={2}>
-          <Box flex="1" minH={0} position="relative" overflowX="auto" overflowY="auto">
+          <Box flex="1" minH={0} position="relative" overflow="auto">
             {showOverlayLoader && (
               <Box
                 position="absolute"
@@ -122,37 +109,33 @@ export default function DataTable<T>({
               variant="outline"
               w="100%"
               size={density}
-              key={tableId}
-              tableLayout={'fixed'}
-              minW={'max-content'}
+              tableLayout="fixed"
+              minW="max-content"
             >
               <TableHeader />
 
               {showSkeleton ? (
-                <DataTableSkeleton rows={pageSize} columns={headers.length + (actions ? 2 : 0)} />
+                <DataTableSkeleton rows={pageSize} columns={effectiveColumns.length} />
               ) : showEmpty ? (
                 <Table.Body>
                   <Table.Row>
-                    <Table.Cell colSpan={headers.length + (actions ? 1 : 0)}>
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        minH="200px"
-                        color="gray.500"
-                      >
-                        {emptyMessage}
-                      </Box>
-                    </Table.Cell>
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      minH="200px"
+                      color="gray.500"
+                      w="100%"
+                    >
+                      {emptyMessage}
+                    </Box>
                   </Table.Row>
                 </Table.Body>
               ) : (
                 <TableRows
-                  data={formattedRows}
-                  actions={actions}
-                  actionConfig={actionConfig}
+                  data={paginatedData}
+                  columns={effectiveColumns}
                   onRowSelect={onRowSelect}
-                  startIndex={startIndex}
                   onRowSelectEvent={onRowSelectEvent}
                 />
               )}
@@ -165,9 +148,9 @@ export default function DataTable<T>({
               pageSize={pageSize}
               currentPage={page}
               onPageChange={onPageChange}
-              onPageSizeChange={(s) => {
-                onPageSizeChange?.(s);
-                if (page > 1) onPageChange?.(1);
+              onPageSizeChange={(size) => {
+                onPageSizeChange?.(size);
+                page > 1 && onPageChange?.(1);
               }}
               pageSizeOptions={pageSizeOptions}
             />

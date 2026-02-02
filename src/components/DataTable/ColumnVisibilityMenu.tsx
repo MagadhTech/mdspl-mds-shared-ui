@@ -2,13 +2,13 @@
 
 import { Checkbox, IconButton, Menu, Portal } from '@chakra-ui/react';
 import { useStore } from '@tanstack/react-store';
-import { Columns2 } from 'lucide-react';
+import { StretchHorizontal } from 'lucide-react';
 import { withChildren } from '../../utils/chakra-slot';
+import { toggleColumn } from './DataTableActions';
 import { tableStore } from './tableStore';
 
 interface Props {
   visibility: Record<string, boolean>;
-  onToggle: (column: string) => void;
 }
 
 const MenuTrigger = withChildren(Menu.Trigger);
@@ -19,13 +19,13 @@ const CheckboxLabel = withChildren(Checkbox.Label);
 const CheckboxHiddenInput = withChildren(Checkbox.HiddenInput);
 const CheckboxControl = withChildren(Checkbox.Control);
 
-export default function ColumnVisibilityMenu({ visibility, onToggle }: Props) {
+export default function ColumnVisibilityMenu({ visibility }: Props) {
   const { sortableColumns } = useStore(tableStore);
   return (
     <Menu.Root closeOnSelect={false}>
       <MenuTrigger asChild>
         <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
-          <Columns2 size={18} />
+          <StretchHorizontal size={18} />
         </IconButton>
       </MenuTrigger>
 
@@ -37,7 +37,7 @@ export default function ColumnVisibilityMenu({ visibility, onToggle }: Props) {
 
               return (
                 <MenuItem key={col.id} value={col.id} closeOnSelect={false}>
-                  <Checkbox.Root checked={isChecked} onCheckedChange={() => onToggle(col.id)}>
+                  <Checkbox.Root checked={isChecked} onCheckedChange={() => toggleColumn(col.id)}>
                     <CheckboxHiddenInput />
                     <CheckboxControl />
                     <CheckboxLabel>{col.label}</CheckboxLabel>
