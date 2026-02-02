@@ -1,19 +1,12 @@
 import { Store } from '@tanstack/store';
 import React from 'react';
-import {
-  getColumnOrderKey,
-  getColumnVisibilityKey,
-} from './DataTableActions';
-import {
-  Column,
-  ACTIONS_COLUMN_ID,
-  VISIBILITY_COLUMN_ID,
-} from './types';
+import { getColumnOrderKey, getColumnVisibilityKey } from './DataTableActions';
+import { ACTIONS_COLUMN_ID, Column, VISIBILITY_COLUMN_ID } from './types';
 
 interface TableState {
   tableId: string;
   sortColumn: string | null;
-  sortDirection: 'asc' | 'desc';
+  sortDirection: 'asc' | 'desc' | null;
   visibility: Record<string, boolean>;
   columnWidths: Record<string, number>;
   columnOrder: Column<any>[];
@@ -30,7 +23,7 @@ interface TableState {
 export const tableStore = new Store<TableState>({
   tableId: '',
   sortColumn: null,
-  sortDirection: 'asc',
+  sortDirection: null,
   visibility: {},
   columnOrder: [],
   columnWidths: {},
@@ -39,8 +32,7 @@ export const tableStore = new Store<TableState>({
   enableColumnVisibility: true,
 });
 
-export const getColumnWidthKey = (tableId: string) =>
-  `datatable:${tableId}:column-widths`;
+export const getColumnWidthKey = (tableId: string) => `datatable:${tableId}:column-widths`;
 
 /* -------------------------------------------------- */
 /* setData                                            */
@@ -64,9 +56,7 @@ export function setData(
         }));
 
   const validColumns = baseColumns.filter(
-    (col) =>
-      col.id === ACTIONS_COLUMN_ID ||
-      Object.prototype.hasOwnProperty.call(firstRow, col.id),
+    (col) => col.id === ACTIONS_COLUMN_ID || Object.prototype.hasOwnProperty.call(firstRow, col.id),
   );
 
   const { tableId } = tableStore.state;
@@ -78,18 +68,14 @@ export function setData(
   );
 
   let orderedColumns: Column<any>[] = [
-    ...savedOrderIds
-      .map((id) => validColumns.find((c) => c.id === id))
-      .filter(Boolean),
+    ...savedOrderIds.map((id) => validColumns.find((c) => c.id === id)).filter(Boolean),
     ...validColumns.filter((c) => !savedOrderIds.includes(c.id)),
   ] as Column<any>[];
 
   /* -------- inject visibility column (if enabled) -------- */
 
   if (enableColumnVisibility) {
-    const hasVisibility = orderedColumns.some(
-      (c) => c.id === VISIBILITY_COLUMN_ID,
-    );
+    const hasVisibility = orderedColumns.some((c) => c.id === VISIBILITY_COLUMN_ID);
 
     if (!hasVisibility) {
       orderedColumns = [
@@ -103,9 +89,7 @@ export function setData(
       ];
     }
   } else {
-    orderedColumns = orderedColumns.filter(
-      (c) => c.id !== VISIBILITY_COLUMN_ID,
-    );
+    orderedColumns = orderedColumns.filter((c) => c.id !== VISIBILITY_COLUMN_ID);
   }
 
   /* -------- visibility state -------- */
@@ -118,20 +102,14 @@ export function setData(
 
   if (enableColumnVisibility) {
     for (const col of orderedColumns) {
-      if (
-        col.id === VISIBILITY_COLUMN_ID ||
-        col.id === ACTIONS_COLUMN_ID
-      ) {
+      if (col.id === VISIBILITY_COLUMN_ID || col.id === ACTIONS_COLUMN_ID) {
         visibility[col.id] = true;
       } else {
         visibility[col.id] = savedVisibility[col.id] ?? true;
       }
     }
 
-    localStorage.setItem(
-      getColumnVisibilityKey(tableId),
-      JSON.stringify(visibility),
-    );
+    localStorage.setItem(getColumnVisibilityKey(tableId), JSON.stringify(visibility));
   }
 
   /* -------- column widths -------- */
@@ -180,8 +158,7 @@ export function setTableId(tableId: string) {
 export function setColumnWidth(columnId: string, width: number) {
   tableStore.setState((prev) => {
     const min =
-      typeof prev.columnOrder.find((c) => c.id === columnId)?.minWidth ===
-      'number'
+      typeof prev.columnOrder.find((c) => c.id === columnId)?.minWidth === 'number'
         ? (prev.columnOrder.find((c) => c.id === columnId)?.minWidth as number)
         : 120;
 
@@ -190,10 +167,7 @@ export function setColumnWidth(columnId: string, width: number) {
       [columnId]: Math.max(min, width),
     };
 
-    localStorage.setItem(
-      getColumnWidthKey(prev.tableId),
-      JSON.stringify(updated),
-    );
+    localStorage.setItem(getColumnWidthKey(prev.tableId), JSON.stringify(updated));
 
     return { ...prev, columnWidths: updated };
   });

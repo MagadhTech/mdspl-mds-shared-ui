@@ -13,6 +13,7 @@ import TableRows from './DataTableRow';
 import DataTableSkeleton from './DataTableSkeleton';
 import { setData, setTableId, tableStore } from './tableStore';
 import { DataTableProps } from './types';
+import { sortRows } from './utils';
 
 export default function DataTable<T>({
   tableId,
@@ -33,7 +34,6 @@ export default function DataTable<T>({
   onRowSelectEvent = 'left',
   enableColumnVisibility = true,
 }: DataTableProps<T>) {
-  /* ---------------- store sync ---------------- */
 
   useEffect(() => {
     setTableId(tableId);
@@ -51,14 +51,14 @@ export default function DataTable<T>({
   );
 
   const processedData = useMemo(() => {
-    if (!sortColumn) return data;
+  if (!sortColumn || !sortDirection) return data;
 
-    return [...data].sort((a, b) =>
-      sortDirection === 'asc'
-        ? String(a[sortColumn]).localeCompare(String(b[sortColumn]))
-        : String(b[sortColumn]).localeCompare(String(a[sortColumn])),
-    );
-  }, [data, sortColumn, sortDirection]);
+  const column = effectiveColumns.find(
+    (c) => c.id === sortColumn,
+  ) as any;
+
+  return sortRows(data, column, sortDirection);
+}, [data, sortColumn, sortDirection, effectiveColumns]);
 
   /* ---------------- pagination ---------------- */
 

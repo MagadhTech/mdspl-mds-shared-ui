@@ -3,27 +3,37 @@
 import { Table } from '@chakra-ui/react';
 import { useStore } from '@tanstack/react-store';
 import ColumnVisibilityMenu from './ColumnVisibilityMenu';
+import { sortByColumn } from './DataTableActions';
 import SortableHeaderCell from './SortableHeaderCell';
 import { tableStore } from './tableStore';
-
-const VISIBILITY_ID = '__visibility__';
+import { ACTIONS_COLUMN_ID, VISIBILITY_COLUMN_ID } from './types';
 
 export default function TableHeader() {
-  const { columnOrder, visibility, enableColumnVisibility } =
-  useStore(tableStore);
+  const { columnOrder, visibility, enableColumnVisibility, sortColumn, sortDirection } =
+    useStore(tableStore);
 
-const orderedColumns = enableColumnVisibility
-  ? [
-      ...columnOrder.filter((c) => c.id !== VISIBILITY_ID),
-      ...columnOrder.filter((c) => c.id === VISIBILITY_ID),
-    ]
-  : columnOrder.filter((c) => c.id !== VISIBILITY_ID);
+  const orderedColumns = columnOrder
+    .filter((col) => {
+      if (!enableColumnVisibility && col.id === VISIBILITY_COLUMN_ID) {
+        return false;
+      }
+
+      if (col.id === VISIBILITY_COLUMN_ID) return true;
+      if (col.id === ACTIONS_COLUMN_ID) return true;
+
+      return visibility[col.id] !== false;
+    })
+    .sort((a, b) => {
+      if (a.id === VISIBILITY_COLUMN_ID) return 1;
+      if (b.id === VISIBILITY_COLUMN_ID) return -1;
+      return 0;
+    });
 
   return (
     <Table.Header position="sticky" top={0} zIndex={1}>
       <Table.Row height="28px">
         {orderedColumns.map((col) => {
-          if (col.id === VISIBILITY_ID) {
+          if (col.id === VISIBILITY_COLUMN_ID) {
             return (
               <Table.ColumnHeader key={col.id} width="50px">
                 <ColumnVisibilityMenu visibility={visibility} />
@@ -31,15 +41,18 @@ const orderedColumns = enableColumnVisibility
             );
           }
 
-          // const isSorted = sortColumn === col.id;
+          const isSortable =
+            col.type !== 'actions' && col.type !== 'visibility' && col.sortable !== false;
+
+          const isSorted = sortColumn === col.id;
 
           return (
             <SortableHeaderCell
               key={col.id}
               id={col.id}
               minW={col.minWidth}
-              // onClick={() => col.sortable && sortByColumn(col.id)}
-              // backgroundColor={col.backgroundColor}
+              onClick={isSortable ? () => sortByColumn(col.id) : undefined}
+              cursor={isSortable ? 'pointer' : 'default'}
               borderRight="2px solid #dcdcdc"
             >
               <span
@@ -52,16 +65,16 @@ const orderedColumns = enableColumnVisibility
               >
                 {col.label}
 
-                {/* {col.sortable &&
+                {isSortable &&
                   (isSorted ? (
                     sortDirection === 'asc' ? (
-                      <ArrowUp size={14} />
+                      ' ▲'
                     ) : (
-                      <ArrowDown size={14} />
+                      ' ▼'
                     )
                   ) : (
-                    <ArrowUpDown size={14} opacity={0.4} />
-                  ))} */}
+                    <span style={{ opacity: 0.4 }}> ⇅</span>
+                  ))}
               </span>
             </SortableHeaderCell>
           );

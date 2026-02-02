@@ -18,10 +18,12 @@ export const setColumnOrder = (order: Column<any>[]) => {
 export function sortByColumn(columnId: string) {
   tableStore.setState((s) => {
     if (s.sortColumn === columnId) {
-      return {
-        ...s,
-        sortDirection: s.sortDirection === 'asc' ? 'desc' : 'asc',
-      };
+      if (s.sortDirection === 'asc') {
+        return { ...s, sortDirection: 'desc' };
+      }
+      if (s.sortDirection === 'desc') {
+        return { ...s, sortColumn: null, sortDirection: null };
+      }
     }
 
     return {

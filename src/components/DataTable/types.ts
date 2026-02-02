@@ -6,6 +6,11 @@ export type SortOrder = 'asc' | 'desc';
 export const ACTIONS_COLUMN_ID = '__actions__' as const;
 export const VISIBILITY_COLUMN_ID = '__visibility__' as const;
 
+type SortDirection = 'asc' | 'desc' | null;
+type SortAccessor<T> = (row: T) => unknown;
+
+type SortComparator<T> = (a: T, b: T, direction: Exclude<SortDirection, null>) => number;
+
 interface BaseColumn {
   label: string | React.ReactNode;
   minWidth?: number | string;
@@ -17,6 +22,8 @@ interface DataColumn<T> extends BaseColumn {
   id: keyof T & string;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
+  sortAccessor?: SortAccessor<T>;
+  sortComparator?: SortComparator<T>;
   render?: (row: T) => React.ReactNode;
 }
 

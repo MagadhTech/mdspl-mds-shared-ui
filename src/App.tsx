@@ -1,4 +1,5 @@
-import { Button, Menu, Portal, Spinner } from '@chakra-ui/react';
+import { IconButton, Menu, Portal, Spinner } from '@chakra-ui/react';
+import { EllipsisIcon } from 'lucide-react';
 import { useState } from 'react';
 import MDSConfirmActionDialog from './components/chakra-compo/ConfirmDialogBox';
 import MDSConfirmDeleteDialog from './components/chakra-compo/DeleteDialogBox';
@@ -57,9 +58,9 @@ function App() {
       render: () => (
         <Menu.Root>
           <Menu.Trigger asChild>
-            <Button variant="outline" size="sm">
-              Open
-            </Button>
+            <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
+              <EllipsisIcon size={18} />
+            </IconButton>
           </Menu.Trigger>
           <Portal>
             <Menu.Positioner>
