@@ -108,7 +108,7 @@ export default function DataTable<T extends { id: string | number }>({
             flex="1"
             minH={0}
             position="relative"
-            overflow="auto"
+            overflowX="auto"
             // CSS Optimizations for scroll container
             css={{
               '&::-webkit-scrollbar': { width: '8px', height: '8px' },
@@ -129,12 +129,27 @@ export default function DataTable<T extends { id: string | number }>({
               </Box>
             )}
 
+            {/* <Table.Root variant="outline" w="100%" size={density} tableLayout="fixed" minW="100%"> */}
             <Table.Root
+              // variant="outline"
+              // w="max-content" // ← key: let table expand beyond container if needed
+              // size={density}
+              // tableLayout="fixed"
+              // minW="100%" // ensure at least full width
+              // css={{
+              //   borderCollapse: 'collapse',
+              // }}
               variant="outline"
-              w="100%"
+              w="max-content" // allows table to grow with resized columns
+              minW="100%" // at least full container width
               size={density}
               tableLayout="fixed"
-              minW="max-content"
+              css={{
+                borderCollapse: 'collapse',
+                '& th, & td': {
+                  boxSizing: 'border-box', // global enforcement
+                },
+              }}
             >
               <TableHeader />
 

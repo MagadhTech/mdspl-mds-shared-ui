@@ -7,7 +7,6 @@ export function sortRows<T>(
 ): T[] {
   if (!column || !direction) return rows;
 
-  // never sort these
   if (column.type === 'actions' || column.type === 'visibility') {
     return rows;
   }

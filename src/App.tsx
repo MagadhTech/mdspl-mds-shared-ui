@@ -25,7 +25,7 @@ const MenuContent = withChildren(Menu.Content);
 const MenuTrigger = withChildren(Menu.Trigger);
 
 function App() {
-  const [pageSize, setPageSize] = useState(500);
+  const [pageSize, setPageSize] = useState(50);
   const [page, setPage] = useState(1);
   const [openDelete, setOpenDelete] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -34,7 +34,7 @@ function App() {
     {
       id: 'name',
       label: 'User Name',
-      minWidth: 400,
+      minWidth: 200,
     },
     {
       id: 'email',
@@ -45,44 +45,44 @@ function App() {
     {
       id: 'role',
       label: 'Role',
-      minWidth: 300,
+      minWidth: 200,
     },
     {
       id: 'status',
       label: 'Status',
-      minWidth: 300,
+      minWidth: 200,
     },
     {
       id: 'joinDate',
       label: 'Join Date',
-      minWidth: 300,
+      minWidth: 200,
     },
-    {
-      type: 'actions',
-      id: ACTIONS_COLUMN_ID,
-      label: 'Actions',
-      minWidth: 100,
-      render: () => (
-        <MenuRoot>
-          <MenuTrigger asChild>
-            <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
-              <EllipsisIcon size={18} />
-            </IconButton>
-          </MenuTrigger>
-          <Portal>
-            <MenuPositioner>
-              <MenuContent>
-                <MenuItem value="new-txt">New Text File</MenuItem>
-                <MenuItem value="new-file">New File...</MenuItem>
-                <MenuItem value="new-win">New Window</MenuItem>
-                <MenuItem value="open-file">Open File...</MenuItem>
-                <MenuItem value="export">Export</MenuItem>
-              </MenuContent>
-            </MenuPositioner>
-          </Portal>
-        </MenuRoot>
-      ),
-    },
+    // {
+    //   type: 'actions',
+    //   id: ACTIONS_COLUMN_ID,
+    //   label: 'Actions',
+    //   minWidth: 200,
+    //   render: () => (
+    //     <MenuRoot>
+    //       <MenuTrigger asChild>
+    //         <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
+    //           <EllipsisIcon size={18} />
+    //         </IconButton>
+    //       </MenuTrigger>
+    //       <Portal>
+    //         <MenuPositioner>
+    //           <MenuContent>
+    //             <MenuItem value="new-txt">New Text File</MenuItem>
+    //             <MenuItem value="new-file">New File...</MenuItem>
+    //             <MenuItem value="new-win">New Window</MenuItem>
+    //             <MenuItem value="open-file">Open File...</MenuItem>
+    //             <MenuItem value="export">Export</MenuItem>
+    //           </MenuContent>
+    //         </MenuPositioner>
+    //       </Portal>
+    //     </MenuRoot>
+    //   ),
+    // },
   ];
 
   return (
@@ -110,12 +110,12 @@ function App() {
         totalCount={dummyData.length}
         loading={false}
         loadingChildren={<Spinner size="sm" />}
-        pageSizeOptions={[100, 200, 500, 1000]}
+        pageSizeOptions={[50, 100, 200, 500, 1000]}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
         onRowSelect={(row) => console.log('row clicked', row)}
         enableColumnVisibility={true}
-        dataType='pagination'
+        dataType="pagination"
       />
 
       <MDSConfirmDeleteDialog

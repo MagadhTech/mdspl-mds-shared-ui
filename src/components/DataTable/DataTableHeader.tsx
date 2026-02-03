@@ -30,12 +30,20 @@ export default function TableHeader() {
     });
 
   return (
-    <Table.Header position="sticky" top={0} zIndex={1}>
+    <Table.Header
+      position="sticky"
+      top={0}
+      zIndex={1}
+      css={{
+        contain: 'layout style paint',
+        backgroundColor: 'white',
+      }}
+    >
       <Table.Row height="28px">
         {orderedColumns.map((col) => {
           if (col.id === VISIBILITY_COLUMN_ID) {
             return (
-              <Table.ColumnHeader key={col.id} width="50px">
+              <Table.ColumnHeader key={col.id} bg={'gray.100'}>
                 <ColumnVisibilityMenu visibility={visibility} />
               </Table.ColumnHeader>
             );

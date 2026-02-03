@@ -5,7 +5,7 @@ import { useStore } from '@tanstack/react-store';
 import { Virtualizer } from '@tanstack/react-virtual';
 import React, { memo } from 'react';
 import { tableStore } from './tableStore';
-import { ACTIONS_COLUMN_ID, Column, VISIBILITY_COLUMN_ID } from './types';
+import { ACTIONS_COLUMN_ID, Column } from './types';
 
 interface VirtualRowProps<T> {
   row: T;
@@ -26,16 +26,16 @@ function VirtualRowComponent<T extends { id: string | number }>({
   index,
   height,
 }: VirtualRowProps<T>) {
+  const { columnWidths } = useStore(tableStore);
   return (
     <Table.Row
       data-index={index}
       onClick={(e) => onRowSelectEvent === 'left' && onRowSelect?.(row, e)}
       cursor={onRowSelect ? 'pointer' : 'default'}
-      h={`${height}px`} // Strict height
+      h={`${height}px`}
       _hover={{ bg: 'gray.50' }}
     >
       {columns.map((col) => {
-        if (col.id === VISIBILITY_COLUMN_ID) return null;
         if (col.id !== ACTIONS_COLUMN_ID && visibility[col.id] === false) return null;
 
         return (
@@ -43,6 +43,9 @@ function VirtualRowComponent<T extends { id: string | number }>({
             key={col.id}
             py={0}
             height={`${height}px`}
+            width={`${columnWidths[col.id] ?? 180}px`} // ← ADD THIS
+            minWidth={col.minWidth || '80px'}
+            maxWidth={`${columnWidths[col.id] ?? 180}px`}
             whiteSpace="nowrap"
             overflow="hidden"
             textOverflow="ellipsis"
@@ -50,7 +53,7 @@ function VirtualRowComponent<T extends { id: string | number }>({
             {'render' in col && col.render ? (
               col.render(row)
             ) : (
-              <div>{String((row as any)[col.id] ?? '—')}</div>
+              <div>{String((row as any)[col.id] ?? '')}</div>
             )}
           </Table.Cell>
         );

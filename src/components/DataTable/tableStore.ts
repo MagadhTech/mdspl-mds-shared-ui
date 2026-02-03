@@ -44,6 +44,7 @@ export function setData(
   enableColumnVisibility: boolean = true,
 ) {
   const firstRow = newData[0] ?? {};
+  const defaultColumnWidth = 180;
 
   /* -------- normalize columns -------- */
 
@@ -118,6 +119,19 @@ export function setData(
     localStorage.getItem(getColumnWidthKey(tableId)) || '{}',
   );
 
+  const initializedWidths: Record<string, number> = { ...savedWidths };
+
+  orderedColumns.forEach((col) => {
+    if (
+      col.id !== VISIBILITY_COLUMN_ID &&
+      col.id !== ACTIONS_COLUMN_ID &&
+      !(col.id in savedWidths)
+    ) {
+      initializedWidths[col.id] =
+        typeof col.minWidth === 'number' ? col.minWidth : defaultColumnWidth;
+    }
+  });
+
   /* -------- commit state -------- */
 
   tableStore.setState((prev) => ({
@@ -125,7 +139,7 @@ export function setData(
     data: newData,
     columnOrder: orderedColumns,
     visibility,
-    columnWidths: savedWidths,
+    columnWidths: initializedWidths,
     enableColumnVisibility,
     sortableColumns: orderedColumns
       .filter((c) => c.id !== VISIBILITY_COLUMN_ID)
@@ -150,11 +164,6 @@ export function setTableId(tableId: string) {
     sortDirection: 'asc',
   }));
 }
-
-/* -------------------------------------------------- */
-/* column width                                       */
-/* -------------------------------------------------- */
-
 export function setColumnWidth(columnId: string, width: number) {
   tableStore.setState((prev) => {
     const min =
