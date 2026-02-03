@@ -7,6 +7,7 @@ import { Column, DataTable } from './components/DataTable';
 import { ACTIONS_COLUMN_ID } from './components/DataTable/types';
 import { DemoFilter } from './demoFilter';
 import { dummyData } from './dummy/data';
+import { withChildren } from './utils/chakra-slot';
 
 type UserRow = {
   id: number;
@@ -17,8 +18,14 @@ type UserRow = {
   joinDate: string;
 };
 
+const MenuRoot = withChildren(Menu.Root);
+const MenuItem = withChildren(Menu.Item);
+const MenuPositioner = withChildren(Menu.Positioner);
+const MenuContent = withChildren(Menu.Content);
+const MenuTrigger = withChildren(Menu.Trigger);
+
 function App() {
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(500);
   const [page, setPage] = useState(1);
   const [openDelete, setOpenDelete] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -56,24 +63,24 @@ function App() {
       label: 'Actions',
       minWidth: 100,
       render: () => (
-        <Menu.Root>
-          <Menu.Trigger asChild>
+        <MenuRoot>
+          <MenuTrigger asChild>
             <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
               <EllipsisIcon size={18} />
             </IconButton>
-          </Menu.Trigger>
+          </MenuTrigger>
           <Portal>
-            <Menu.Positioner>
-              <Menu.Content>
-                <Menu.Item value="new-txt">New Text File</Menu.Item>
-                <Menu.Item value="new-file">New File...</Menu.Item>
-                <Menu.Item value="new-win">New Window</Menu.Item>
-                <Menu.Item value="open-file">Open File...</Menu.Item>
-                <Menu.Item value="export">Export</Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
+            <MenuPositioner>
+              <MenuContent>
+                <MenuItem value="new-txt">New Text File</MenuItem>
+                <MenuItem value="new-file">New File...</MenuItem>
+                <MenuItem value="new-win">New Window</MenuItem>
+                <MenuItem value="open-file">Open File...</MenuItem>
+                <MenuItem value="export">Export</MenuItem>
+              </MenuContent>
+            </MenuPositioner>
           </Portal>
-        </Menu.Root>
+        </MenuRoot>
       ),
     },
   ];
@@ -103,11 +110,12 @@ function App() {
         totalCount={dummyData.length}
         loading={false}
         loadingChildren={<Spinner size="sm" />}
-        pageSizeOptions={[5, 8, 10]}
+        pageSizeOptions={[100, 200, 500, 1000]}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
         onRowSelect={(row) => console.log('row clicked', row)}
         enableColumnVisibility={true}
+        dataType='pagination'
       />
 
       <MDSConfirmDeleteDialog

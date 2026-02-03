@@ -18,6 +18,7 @@ export default function SortableHeaderCell({
   borderRight,
   backgroundColor,
   minW,
+  width : headerWidth,
 }: {
   id: string;
   children: React.ReactNode;
@@ -26,9 +27,10 @@ export default function SortableHeaderCell({
   borderRight?: string;
   backgroundColor?: string;
   minW?: string | number;
+  width?: string | number;
 }) {
   const { columnWidths } = useStore(tableStore);
-  const width = columnWidths[id];
+  const width = columnWidths[id] ?? headerWidth;
 
   const startX = useRef(0);
   const startWidth = useRef(0);

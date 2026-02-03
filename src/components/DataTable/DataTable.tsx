@@ -1,10 +1,11 @@
 'use client';
 
 import { Box, Spinner, Table } from '@chakra-ui/react';
-import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
-import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useStore } from '@tanstack/react-store';
-import { useEffect, useMemo } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { setColumnOrder } from './DataTableActions';
 import TableHeader from './DataTableHeader';
@@ -15,7 +16,7 @@ import { setData, setTableId, tableStore } from './tableStore';
 import { DataTableProps } from './types';
 import { sortRows } from './utils';
 
-export default function DataTable<T>({
+export default function DataTable<T extends { id: string | number }>({
   tableId,
   data: rowData = [],
   headers = [],
@@ -33,7 +34,9 @@ export default function DataTable<T>({
   onRowSelect,
   onRowSelectEvent = 'left',
   enableColumnVisibility = true,
+  dataType = 'pagination',
 }: DataTableProps<T>) {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTableId(tableId);
@@ -51,23 +54,33 @@ export default function DataTable<T>({
   );
 
   const processedData = useMemo(() => {
-  if (!sortColumn || !sortDirection) return data;
+    if (!sortColumn || !sortDirection) return data;
+    const column = effectiveColumns.find((c) => c.id === sortColumn) as any;
+    return sortRows(data, column, sortDirection);
+  }, [data, sortColumn, sortDirection, effectiveColumns]);
 
-  const column = effectiveColumns.find(
-    (c) => c.id === sortColumn,
-  ) as any;
+  const startIndex = (Math.max(1, page) - 1) * pageSize;
 
-  return sortRows(data, column, sortDirection);
-}, [data, sortColumn, sortDirection, effectiveColumns]);
+  const displayData = useMemo(() => {
+    if (dataType === 'infinite') {
+      return processedData;
+    }
+    return processedData.slice(startIndex, startIndex + pageSize);
+  }, [processedData, startIndex, pageSize, dataType]);
 
-  /* ---------------- pagination ---------------- */
+  const getRowHeight = () => {
+    if (density === 'sm') return 45;
+    if (density === 'md') return 56;
+    return 64;
+  };
+  const rowHeight = getRowHeight();
 
-  const startIndex = useMemo(() => (Math.max(1, page) - 1) * pageSize, [page, pageSize]);
-
-  const paginatedData = useMemo(
-    () => processedData.slice(startIndex, startIndex + pageSize),
-    [processedData, startIndex, pageSize],
-  );
+  const rowVirtualizer = useVirtualizer({
+    count: displayData.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 25,
+  });
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -81,7 +94,7 @@ export default function DataTable<T>({
 
   const showOverlayLoader = loading && !skeletonLoading;
   const showSkeleton = skeletonLoading && !loading;
-  const showEmpty = !loading && !skeletonLoading && processedData.length === 0;
+  const showEmpty = !loading && !skeletonLoading && displayData.length === 0;
 
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -90,7 +103,18 @@ export default function DataTable<T>({
         strategy={horizontalListSortingStrategy}
       >
         <Box flex="1" minH={0} display="flex" flexDirection="column" p={2}>
-          <Box flex="1" minH={0} position="relative" overflow="auto">
+          <Box
+            ref={tableContainerRef}
+            flex="1"
+            minH={0}
+            position="relative"
+            overflow="auto"
+            // CSS Optimizations for scroll container
+            css={{
+              '&::-webkit-scrollbar': { width: '8px', height: '8px' },
+              willChange: 'transform', // Hint to browser
+            }}
+          >
             {showOverlayLoader && (
               <Box
                 position="absolute"
@@ -119,42 +143,55 @@ export default function DataTable<T>({
               ) : showEmpty ? (
                 <Table.Body>
                   <Table.Row>
-                    <Box
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                      minH="200px"
+                    <Table.Cell
+                      colSpan={effectiveColumns.length}
+                      textAlign="center"
+                      h="200px"
                       color="gray.500"
-                      w="100%"
                     >
                       {emptyMessage}
-                    </Box>
+                    </Table.Cell>
                   </Table.Row>
                 </Table.Body>
               ) : (
                 <TableRows
-                  data={paginatedData}
+                  data={displayData}
                   columns={effectiveColumns}
+                  rowVirtualizer={rowVirtualizer}
                   onRowSelect={onRowSelect}
                   onRowSelectEvent={onRowSelectEvent}
+                  rowHeight={rowHeight}
                 />
               )}
             </Table.Root>
           </Box>
 
-          <Box mt={0.5}>
-            <TablePagination
-              totalCount={totalCount}
-              pageSize={pageSize}
-              currentPage={page}
-              onPageChange={onPageChange}
-              onPageSizeChange={(size) => {
-                onPageSizeChange?.(size);
-                page > 1 && onPageChange?.(1);
-              }}
-              pageSizeOptions={pageSizeOptions}
-            />
-          </Box>
+          {/* Only show pagination if in pagination mode */}
+          {dataType === 'pagination' && (
+            <Box mt={0.5}>
+              <TablePagination
+                totalCount={totalCount}
+                pageSize={pageSize}
+                currentPage={page}
+                onPageChange={(p) => {
+                  if (tableContainerRef.current) tableContainerRef.current.scrollTop = 0;
+                  onPageChange?.(p);
+                }}
+                onPageSizeChange={(size) => {
+                  onPageSizeChange?.(size);
+                  page > 1 && onPageChange?.(1);
+                }}
+                pageSizeOptions={pageSizeOptions}
+              />
+            </Box>
+          )}
+
+          {/* Optional: Footer for infinite scroll count */}
+          {dataType === 'infinite' && (
+            <Box mt={2} px={2} fontSize="sm" color="gray.500">
+              Showing {displayData.length} rows
+            </Box>
+          )}
         </Box>
       </SortableContext>
     </DndContext>

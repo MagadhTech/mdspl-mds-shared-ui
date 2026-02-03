@@ -1,8 +1,2 @@
 export { default as DataTable } from './DataTable';
-export type {
-  ActionHeaderProps,
-  Column,
-  DataTableAction,
-  DataTableProps,
-  DensityType,
-} from './types';
+export type { Column, DataTableProps, DensityType } from './types';

@@ -58,4 +58,5 @@ export interface DataTableProps<T> {
   onRowSelect?: (row: T, event?: React.MouseEvent) => void;
   onRowSelectEvent?: 'left' | 'right';
   enableColumnVisibility?: boolean;
+  dataType?: 'pagination' | 'infinite';
 }
