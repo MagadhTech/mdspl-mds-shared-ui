@@ -34,55 +34,55 @@ function App() {
     {
       id: 'name',
       label: 'User Name',
-      minWidth: 200,
+      minWidth: 300,
     },
     {
       id: 'email',
       label: 'Email',
-      minWidth: 400,
+      minWidth: 300,
       render: (row) => <span style={{ color: 'blue', fontSize: 12 }}>{row.email}</span>,
     },
     {
       id: 'role',
       label: 'Role',
-      minWidth: 200,
+      minWidth: 400,
     },
     {
       id: 'status',
       label: 'Status',
-      minWidth: 200,
+      minWidth: 400,
     },
     {
       id: 'joinDate',
       label: 'Join Date',
       minWidth: 200,
     },
-    // {
-    //   type: 'actions',
-    //   id: ACTIONS_COLUMN_ID,
-    //   label: 'Actions',
-    //   minWidth: 200,
-    //   render: () => (
-    //     <MenuRoot>
-    //       <MenuTrigger asChild>
-    //         <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
-    //           <EllipsisIcon size={18} />
-    //         </IconButton>
-    //       </MenuTrigger>
-    //       <Portal>
-    //         <MenuPositioner>
-    //           <MenuContent>
-    //             <MenuItem value="new-txt">New Text File</MenuItem>
-    //             <MenuItem value="new-file">New File...</MenuItem>
-    //             <MenuItem value="new-win">New Window</MenuItem>
-    //             <MenuItem value="open-file">Open File...</MenuItem>
-    //             <MenuItem value="export">Export</MenuItem>
-    //           </MenuContent>
-    //         </MenuPositioner>
-    //       </Portal>
-    //     </MenuRoot>
-    //   ),
-    // },
+    {
+      type: 'actions',
+      id: ACTIONS_COLUMN_ID,
+      label: 'Actions',
+      minWidth: 200,
+      render: () => (
+        <MenuRoot>
+          <MenuTrigger asChild>
+            <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
+              <EllipsisIcon size={18} />
+            </IconButton>
+          </MenuTrigger>
+          <Portal>
+            <MenuPositioner>
+              <MenuContent>
+                <MenuItem value="new-txt">New Text File</MenuItem>
+                <MenuItem value="new-file">New File...</MenuItem>
+                <MenuItem value="new-win">New Window</MenuItem>
+                <MenuItem value="open-file">Open File...</MenuItem>
+                <MenuItem value="export">Export</MenuItem>
+              </MenuContent>
+            </MenuPositioner>
+          </Portal>
+        </MenuRoot>
+      ),
+    },
   ];
 
   return (

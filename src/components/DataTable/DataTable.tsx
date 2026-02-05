@@ -109,10 +109,9 @@ export default function DataTable<T extends { id: string | number }>({
             minH={0}
             position="relative"
             overflowX="auto"
-            // CSS Optimizations for scroll container
             css={{
               '&::-webkit-scrollbar': { width: '8px', height: '8px' },
-              willChange: 'transform', // Hint to browser
+              willChange: 'transform',
             }}
           >
             {showOverlayLoader && (
@@ -129,25 +128,16 @@ export default function DataTable<T extends { id: string | number }>({
               </Box>
             )}
 
-            {/* <Table.Root variant="outline" w="100%" size={density} tableLayout="fixed" minW="100%"> */}
             <Table.Root
-              // variant="outline"
-              // w="max-content" // ← key: let table expand beyond container if needed
-              // size={density}
-              // tableLayout="fixed"
-              // minW="100%" // ensure at least full width
-              // css={{
-              //   borderCollapse: 'collapse',
-              // }}
               variant="outline"
-              w="max-content" // allows table to grow with resized columns
-              minW="100%" // at least full container width
+              w="max-content"
+              minW="100%"
               size={density}
               tableLayout="fixed"
               css={{
                 borderCollapse: 'collapse',
                 '& th, & td': {
-                  boxSizing: 'border-box', // global enforcement
+                  boxSizing: 'border-box',
                 },
               }}
             >
@@ -181,7 +171,6 @@ export default function DataTable<T extends { id: string | number }>({
             </Table.Root>
           </Box>
 
-          {/* Only show pagination if in pagination mode */}
           {dataType === 'pagination' && (
             <Box mt={0.5}>
               <TablePagination
@@ -201,7 +190,6 @@ export default function DataTable<T extends { id: string | number }>({
             </Box>
           )}
 
-          {/* Optional: Footer for infinite scroll count */}
           {dataType === 'infinite' && (
             <Box mt={2} px={2} fontSize="sm" color="gray.500">
               Showing {displayData.length} rows

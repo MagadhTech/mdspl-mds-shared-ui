@@ -34,10 +34,6 @@ export const tableStore = new Store<TableState>({
 
 export const getColumnWidthKey = (tableId: string) => `datatable:${tableId}:column-widths`;
 
-/* -------------------------------------------------- */
-/* setData                                            */
-/* -------------------------------------------------- */
-
 export function setData(
   newData: any[],
   headers?: Column<any>[],
@@ -45,8 +41,6 @@ export function setData(
 ) {
   const firstRow = newData[0] ?? {};
   const defaultColumnWidth = 180;
-
-  /* -------- normalize columns -------- */
 
   const baseColumns: Column<any>[] =
     headers && headers.length
@@ -62,8 +56,6 @@ export function setData(
 
   const { tableId } = tableStore.state;
 
-  /* -------- column order -------- */
-
   const savedOrderIds: string[] = JSON.parse(
     localStorage.getItem(getColumnOrderKey(tableId)) || '[]',
   );
@@ -72,8 +64,6 @@ export function setData(
     ...savedOrderIds.map((id) => validColumns.find((c) => c.id === id)).filter(Boolean),
     ...validColumns.filter((c) => !savedOrderIds.includes(c.id)),
   ] as Column<any>[];
-
-  /* -------- inject visibility column (if enabled) -------- */
 
   if (enableColumnVisibility) {
     const hasVisibility = orderedColumns.some((c) => c.id === VISIBILITY_COLUMN_ID);
@@ -85,15 +75,13 @@ export function setData(
           type: 'visibility',
           id: VISIBILITY_COLUMN_ID,
           label: '',
-          minWidth: 50,
+          minWidth: 20,
         } as Column<any>,
       ];
     }
   } else {
     orderedColumns = orderedColumns.filter((c) => c.id !== VISIBILITY_COLUMN_ID);
   }
-
-  /* -------- visibility state -------- */
 
   const savedVisibility: Record<string, boolean> = JSON.parse(
     localStorage.getItem(getColumnVisibilityKey(tableId)) || '{}',
@@ -113,8 +101,6 @@ export function setData(
     localStorage.setItem(getColumnVisibilityKey(tableId), JSON.stringify(visibility));
   }
 
-  /* -------- column widths -------- */
-
   const savedWidths: Record<string, number> = JSON.parse(
     localStorage.getItem(getColumnWidthKey(tableId)) || '{}',
   );
@@ -131,8 +117,6 @@ export function setData(
         typeof col.minWidth === 'number' ? col.minWidth : defaultColumnWidth;
     }
   });
-
-  /* -------- commit state -------- */
 
   tableStore.setState((prev) => ({
     ...prev,
@@ -152,10 +136,6 @@ export function setData(
   }));
 }
 
-/* -------------------------------------------------- */
-/* setTableId                                         */
-/* -------------------------------------------------- */
-
 export function setTableId(tableId: string) {
   tableStore.setState((prev) => ({
     ...prev,
@@ -169,7 +149,7 @@ export function setColumnWidth(columnId: string, width: number) {
     const min =
       typeof prev.columnOrder.find((c) => c.id === columnId)?.minWidth === 'number'
         ? (prev.columnOrder.find((c) => c.id === columnId)?.minWidth as number)
-        : 120;
+        : 50;
 
     const updated = {
       ...prev.columnWidths,

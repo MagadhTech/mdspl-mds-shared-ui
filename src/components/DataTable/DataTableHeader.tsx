@@ -43,7 +43,7 @@ export default function TableHeader() {
         {orderedColumns.map((col) => {
           if (col.id === VISIBILITY_COLUMN_ID) {
             return (
-              <Table.ColumnHeader key={col.id} bg={'gray.100'}>
+              <Table.ColumnHeader key={col.id} bg={'gray.100'} w={100}>
                 <ColumnVisibilityMenu visibility={visibility} />
               </Table.ColumnHeader>
             );

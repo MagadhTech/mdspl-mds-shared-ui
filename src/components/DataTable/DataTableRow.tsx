@@ -43,8 +43,8 @@ function VirtualRowComponent<T extends { id: string | number }>({
             key={col.id}
             py={0}
             height={`${height}px`}
-            width={`${columnWidths[col.id] ?? 180}px`} // ← ADD THIS
-            minWidth={col.minWidth || '80px'}
+            width={`${columnWidths[col.id] ?? 30}px`}
+            minWidth={col.minWidth || '40px'}
             maxWidth={`${columnWidths[col.id] ?? 180}px`}
             whiteSpace="nowrap"
             overflow="hidden"
@@ -83,7 +83,6 @@ export default function TableRows<T extends { id: string | number }>({
 
   const virtualItems = rowVirtualizer.getVirtualItems();
 
-  // "Padding" virtualization method (Smoothest for table elements)
   const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
   const paddingBottom =
     virtualItems.length > 0
@@ -94,14 +93,12 @@ export default function TableRows<T extends { id: string | number }>({
     <Table.Body>
       {paddingTop > 0 && (
         <Table.Row h={`${paddingTop}px`}>
-          {/* Render a single cell spanning all cols to maintain table structure */}
           <Table.Cell colSpan={columns.length} p={0} border="none" h={`${paddingTop}px`} />
         </Table.Row>
       )}
 
       {virtualItems.map((virtualRow) => {
         const row = data[virtualRow.index];
-        // Safety check in case data slicing is slightly off
         if (!row) return null;
 
         return (
