@@ -115,7 +115,7 @@ function App() {
         onPageSizeChange={setPageSize}
         onRowSelect={(row) => console.log('row clicked', row)}
         enableColumnVisibility={true}
-        dataType="pagination"
+        dataType="infinite"
       />
 
       <MDSConfirmDeleteDialog

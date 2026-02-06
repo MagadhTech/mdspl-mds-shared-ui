@@ -49,8 +49,7 @@ export default function TableHeader() {
             );
           }
 
-          const isSortable =
-            col.type !== 'actions' && col.type !== 'visibility' && col.sortable !== false;
+          const isSortable = col.type !== 'actions' && col.type !== 'visibility';
 
           const isSorted = sortColumn === col.id;
 

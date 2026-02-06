@@ -5,6 +5,7 @@ export type SortOrder = 'asc' | 'desc';
 
 export const ACTIONS_COLUMN_ID = '__actions__' as const;
 export const VISIBILITY_COLUMN_ID = '__visibility__' as const;
+export const SERIAL_NUMBER_COLUMN_ID = '__serial_number__' as const;
 
 type SortDirection = 'asc' | 'desc' | null;
 type SortAccessor<T> = (row: T) => unknown;
@@ -38,7 +39,12 @@ interface VisibilityColumn extends BaseColumn {
   id: typeof VISIBILITY_COLUMN_ID;
 }
 
-export type Column<T> = DataColumn<T> | ActionColumn<T> | VisibilityColumn;
+interface SerialNumberColumn extends BaseColumn {
+  type: 'serial_number';
+  id: typeof SERIAL_NUMBER_COLUMN_ID;
+}
+
+export type Column<T> = DataColumn<T> | ActionColumn<T> | VisibilityColumn | SerialNumberColumn;
 
 export interface DataTableProps<T> {
   tableId: string;
@@ -59,4 +65,5 @@ export interface DataTableProps<T> {
   onRowSelectEvent?: 'left' | 'right';
   enableColumnVisibility?: boolean;
   dataType?: 'pagination' | 'infinite';
+  enableRowNumbers?: boolean;
 }
