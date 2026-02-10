@@ -34,6 +34,14 @@ function VirtualRowComponent<T extends { id: string | number }>({
       cursor={onRowSelect ? 'pointer' : 'default'}
       h={`${height}px`}
       _hover={{ bg: 'gray.50' }}
+      onContextMenu={
+            onRowSelectEvent === 'right'
+              ? (e) => {
+                  e.preventDefault();
+                  onRowSelect?.(row,e);
+                }
+              : undefined
+          }
     >
       {columns.map((col) => {
         if (col.id !== ACTIONS_COLUMN_ID && visibility[col.id] === false) return null;

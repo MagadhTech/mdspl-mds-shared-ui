@@ -32,6 +32,10 @@ function App() {
 
   const headers: Column<UserRow>[] = [
     {
+      id : 'status',
+      label: '#',
+    },
+    {
       id: 'name',
       label: 'User Name',
       minWidth: 300,
@@ -62,7 +66,7 @@ function App() {
       id: ACTIONS_COLUMN_ID,
       label: 'Actions',
       minWidth: 200,
-      render: () => (
+      render: (row) => (
         <MenuRoot>
           <MenuTrigger asChild>
             <IconButton aria-label="Toggle columns" variant="ghost" ml="1" size="xs">
