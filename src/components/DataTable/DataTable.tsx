@@ -16,6 +16,10 @@ import { setData, setTableId, tableStore } from './tableStore';
 import { DataTableProps } from './types';
 import { sortRows } from './utils';
 
+interface ExtendedDataTableProps<T> extends DataTableProps<T> {
+  manualPagination?: boolean;
+}
+
 export default function DataTable<T extends { id: string | number }>({
   tableId,
   data: rowData = [],
@@ -35,7 +39,8 @@ export default function DataTable<T extends { id: string | number }>({
   onRowSelectEvent = 'left',
   enableColumnVisibility = true,
   dataType = 'pagination',
-}: DataTableProps<T>) {
+  manualPagination = false, // Default false, but we auto-detect below
+}: ExtendedDataTableProps<T>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,8 +70,18 @@ export default function DataTable<T extends { id: string | number }>({
     if (dataType === 'infinite') {
       return processedData;
     }
+
+    const isServerSide =
+      manualPagination ||
+      totalCount > processedData.length ||
+      (page > 1 && processedData.length > 0 && processedData.length <= pageSize);
+
+    if (isServerSide) {
+      return processedData;
+    }
+
     return processedData.slice(startIndex, startIndex + pageSize);
-  }, [processedData, startIndex, pageSize, dataType]);
+  }, [processedData, startIndex, pageSize, dataType, page, totalCount, manualPagination]);
 
   const getRowHeight = () => {
     if (density === 'sm') return 45;

@@ -3,6 +3,7 @@ import { EllipsisIcon } from 'lucide-react';
 import { useState } from 'react';
 import MDSConfirmActionDialog from './components/chakra-compo/ConfirmDialogBox';
 import MDSConfirmDeleteDialog from './components/chakra-compo/DeleteDialogBox';
+import usePagination from './components/customHooks/Pagination.hook';
 import { Column, DataTable } from './components/DataTable';
 import { ACTIONS_COLUMN_ID } from './components/DataTable/types';
 import { DemoFilter } from './demoFilter';
@@ -25,14 +26,18 @@ const MenuContent = withChildren(Menu.Content);
 const MenuTrigger = withChildren(Menu.Trigger);
 
 function App() {
-  const [pageSize, setPageSize] = useState(50);
-  const [page, setPage] = useState(1);
+  // const [pageSize, setPageSize] = useState(50);
+  // const [page, setPage] = useState(1);
   const [openDelete, setOpenDelete] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
+  const { page, limit, setLimit, setPage } = usePagination({
+    initialPage: 1,
+    initialLimit: 20,
+  });
 
   const headers: Column<UserRow>[] = [
     {
-      id : 'status',
+      id: 'status',
       label: '#',
     },
     {
@@ -110,16 +115,16 @@ function App() {
           id: item.id + i,
         }))}
         page={page}
-        pageSize={pageSize}
+        pageSize={limit}
         totalCount={dummyData.length}
         loading={false}
         loadingChildren={<Spinner size="sm" />}
         pageSizeOptions={[50, 100, 200, 500, 1000]}
         onPageChange={setPage}
-        onPageSizeChange={setPageSize}
+        onPageSizeChange={setLimit}
         onRowSelect={(row) => console.log('row clicked', row)}
         enableColumnVisibility={true}
-        dataType="infinite"
+        dataType="pagination"
       />
 
       <MDSConfirmDeleteDialog
