@@ -21,7 +21,11 @@ const PopoverArrow = withChildren(Popover.Arrow);
 const PopoverTrigger = withChildren(Popover.Trigger);
 const PopoverPositioner = withChildren(Popover.Positioner);
 
-function formatDate(date) {
+// FIX 1: Helper function to strip time components right at the boundaries
+const startOfDay = (d: Date | null | undefined) =>
+  d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : null;
+
+function formatDate(date: Date | null) {
   if (!date) return '';
   const dd = String(date.getDate()).padStart(2, '0');
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -29,12 +33,12 @@ function formatDate(date) {
   return `${dd}-${mm}-${yyyy}`;
 }
 
-function parseDateRange(value) {
+function parseDateRange(value: string) {
   const parts = value.split(/\s+to\s+/i);
   const startStr = parts[0];
   const endStr = parts[1];
 
-  const parseSingle = (str) => {
+  const parseSingle = (str?: string) => {
     if (!str) return null;
     const p = str.trim().split('-');
     if (p.length !== 3) return null;
@@ -63,12 +67,11 @@ export type IMDSDateRangePickerTypes = {
   visible?: boolean;
 };
 
-
 export default function MDSDateRangePicker({
   startDate,
   endDate,
   onChange,
-  width = '280px', // Slightly wider for " to "
+  width = '280px',
   showLabel = true,
   label = 'Select date range',
   visible = true,
@@ -77,34 +80,46 @@ export default function MDSDateRangePicker({
   const [current, setCurrent] = useState(startDate || new Date());
   const [hoverDay, setHoverDay] = useState<Date | null>(null);
 
-  const [localStart, setLocalStart] = useState(startDate || null);
-  const [localEnd, setLocalEnd] = useState(endDate || null);
+  const [localStart, setLocalStart] = useState<Date | null>(startOfDay(startDate));
+  const [localEnd, setLocalEnd] = useState<Date | null>(startOfDay(endDate));
 
-  const getDisplayValue = (s, e) => {
+  const getDisplayValue = (s: Date | null, e: Date | null) => {
     if (s && e) return `${formatDate(s)} to ${formatDate(e)}`;
     if (s) return `${formatDate(s)}`;
     return '';
   };
 
-  const [inputValue, setInputValue] = useState(getDisplayValue(startDate, endDate));
+  const [inputValue, setInputValue] = useState(
+    getDisplayValue(startOfDay(startDate), startOfDay(endDate)),
+  );
+
+  const startMs = startDate?.getTime();
+  const endMs = endDate?.getTime();
 
   useEffect(() => {
-    setLocalStart(startDate || null);
-    setLocalEnd(endDate || null);
-  }, [startDate, endDate]);
+    // FIX 2: Always normalize incoming props to midnight so Dayjs time elements don't cause mismatch bugs
+    const normStart = startOfDay(startDate);
+    const normEnd = startOfDay(endDate);
+
+    setLocalStart(normStart);
+    setLocalEnd(normEnd);
+    setInputValue(getDisplayValue(normStart, normEnd));
+
+    if (normStart) {
+      setCurrent(new Date(normStart.getFullYear(), normStart.getMonth(), 1));
+    }
+  }, [startMs, endMs]);
 
   const daysInMonth = new Date(current.getFullYear(), current.getMonth() + 1, 0).getDate();
   const firstDay = new Date(current.getFullYear(), current.getMonth(), 1).getDay();
 
-  const handlePrevMonth = () => {
+  const handlePrevMonth = () =>
     setCurrent(new Date(current.getFullYear(), current.getMonth() - 1, 1));
-  };
-
-  const handleNextMonth = () => {
+  const handleNextMonth = () =>
     setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1));
-  };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = (day: number) => {
+    // This is already perfectly normalized to midnight
     const selected = new Date(current.getFullYear(), current.getMonth(), day);
 
     if (!localStart || (localStart && localEnd)) {
@@ -115,8 +130,9 @@ export default function MDSDateRangePicker({
       return;
     }
 
-    // Second click → set end
     if (localStart && !localEnd) {
+      // FIX 3: Removed the `if (selected === localStart) return;` block.
+      // Now if a user double-clicks the same day, it successfully selects a 1-day range and closes!
       const start = selected < localStart ? selected : localStart;
       const end = selected < localStart ? localStart : selected;
 
@@ -128,44 +144,35 @@ export default function MDSDateRangePicker({
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: any) => {
     const val = e.target.value;
     setInputValue(val);
 
     const { start, end } = parseDateRange(val);
 
-    // If typed fully "01-01-2024 to 05-01-2024", update everything
     if (start && end) {
       const newStart = start < end ? start : end;
       const newEnd = start < end ? end : start;
+      setLocalStart(newStart);
+      setLocalEnd(newEnd);
       onChange(newStart, newEnd);
       setCurrent(newStart);
-    }
-    // If user deletes the end date text manually, update state to just start date
-    else if (start && !val.toLowerCase().includes('to')) {
+    } else if (start && !val.toLowerCase().includes('to')) {
+      setLocalStart(start);
+      setLocalEnd(null);
       onChange(start, null);
+    } else if (!val.trim()) {
+      setLocalStart(null);
+      setLocalEnd(null);
+      onChange(null, null);
     }
   };
 
-  // const handleKeyDown = (e) => {
-  //   if (e.key === 'Enter') {
-  //     const { start, end } = parseDateRange(inputValue);
-  //     if (start && end) {
-  //       onChange(start, end);
-  //       setOpen(false);
-  //     }
-  //   }
-  //   if (!open) return;
-  //   if (e.key === 'ArrowLeft') handlePrevMonth();
-  //   if (e.key === 'ArrowRight') handleNextMonth();
-  //   if (e.key === 'Escape') setOpen(false);
-  // };
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: any) => {
     if (e.key !== 'Enter') return;
 
     const { start, end } = parseDateRange(inputValue);
 
-    // Case 1: start exists, no end → append " to "
     if (start && !end && !inputValue.toLowerCase().includes('to')) {
       const next = `${formatDate(start)} to `;
       setInputValue(next);
@@ -173,16 +180,13 @@ export default function MDSDateRangePicker({
       setLocalEnd(null);
       onChange(start, null);
 
-      // move cursor to end (next tick)
       requestAnimationFrame(() => {
         const el = e.target;
         el.setSelectionRange(next.length, next.length);
       });
-
       return;
     }
 
-    // Case 2: full range entered → commit + close
     if (start && end) {
       const newStart = start < end ? start : end;
       const newEnd = start < end ? end : start;
@@ -193,7 +197,11 @@ export default function MDSDateRangePicker({
     }
   };
 
-  const clearDates = () => {
+  const clearDates = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setLocalStart(null);
     setLocalEnd(null);
     setInputValue('');
@@ -226,11 +234,13 @@ export default function MDSDateRangePicker({
               size="xs"
               variant="ghost"
               aria-label="Clear date"
+              type="button"
               onClick={clearDates}
               position="absolute"
               right="32px"
               top="50%"
               transform="translateY(-50%)"
+              zIndex={2}
             >
               <X size={14} />
             </IconButton>
@@ -263,6 +273,7 @@ export default function MDSDateRangePicker({
               <IconButton
                 size="xs"
                 variant="ghost"
+                type="button"
                 onClick={handlePrevMonth}
                 aria-label="Previous month"
               >
@@ -277,6 +288,7 @@ export default function MDSDateRangePicker({
               <IconButton
                 size="xs"
                 variant="ghost"
+                type="button"
                 onClick={handleNextMonth}
                 aria-label="Next month"
               >
@@ -301,26 +313,29 @@ export default function MDSDateRangePicker({
                 const day = i + 1;
                 const date = new Date(current.getFullYear(), current.getMonth(), day);
 
-                // Compute effective start and end for display/preview
-                let effectiveStart = startDate;
-                let effectiveEnd = endDate;
-                if (effectiveStart && effectiveEnd) {
-                  if (hoverDay) {
-                    if (startDate && endDate) {
-                      const mid =
-                        startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2;
-                      if (hoverDay.getTime() <= mid) {
-                        effectiveStart = hoverDay;
-                      } else {
-                        effectiveEnd = hoverDay;
-                      }
-                      // Ensure order (though logic prevents reverse)
-                      if (effectiveStart > effectiveEnd) {
-                        [effectiveStart, effectiveEnd] = [effectiveEnd, effectiveStart];
-                      }
-                    } else if (startDate && !endDate) {
-                      effectiveStart = hoverDay < startDate ? hoverDay : startDate;
-                      effectiveEnd = hoverDay < startDate ? startDate : hoverDay;
+                let effectiveStart = localStart;
+                let effectiveEnd = localEnd;
+                const normHoverDay = startOfDay(hoverDay);
+
+                if (normHoverDay) {
+                  if (effectiveStart && !effectiveEnd) {
+                    if (normHoverDay < effectiveStart) {
+                      effectiveEnd = effectiveStart;
+                      effectiveStart = normHoverDay;
+                    } else {
+                      effectiveEnd = normHoverDay;
+                    }
+                  } else if (effectiveStart && effectiveEnd) {
+                    const mid =
+                      effectiveStart.getTime() +
+                      (effectiveEnd.getTime() - effectiveStart.getTime()) / 2;
+                    if (normHoverDay.getTime() <= mid) {
+                      effectiveStart = normHoverDay;
+                    } else {
+                      effectiveEnd = normHoverDay;
+                    }
+                    if (effectiveStart > effectiveEnd) {
+                      [effectiveStart, effectiveEnd] = [effectiveEnd, effectiveStart];
                     }
                   }
                 }
@@ -341,7 +356,6 @@ export default function MDSDateRangePicker({
                   bg = 'blue.100';
                 }
 
-                // Rounded corners logic
                 let borderRadius = 'md';
                 if (inRange) borderRadius = '0';
                 if (isStart && effectiveEnd) {
@@ -355,9 +369,8 @@ export default function MDSDateRangePicker({
                   <Button
                     key={day}
                     size="xs"
-                    variant={'ghost'}
+                    variant={variant as any}
                     colorPalette={colorPalette}
-                    bg={bg !== 'transparent' ? bg : undefined}
                     onClick={() => handleDayClick(day)}
                     onMouseEnter={() => setHoverDay(date)}
                     onMouseLeave={() => setHoverDay(null)}

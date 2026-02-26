@@ -1,4 +1,5 @@
 import { Text } from '@chakra-ui/react';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { IFilterConfig } from './components/filters';
 import FiltersToolBar from './components/filters/Filters';
@@ -11,6 +12,14 @@ type HeaderProps = {
 
 export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
   const [activePresetName, setActivePresetName] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log('running first ');
+    setStartDate(dayjs().subtract(7, 'day').format('YYYY-MM-DD'));
+    setEndDate(dayjs().format('YYYY-MM-DD'));
+  }, []);
 
   const [filters, setFilters] = useState<IFilterConfig[]>([
     {
@@ -52,12 +61,29 @@ export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
       id: 'Date',
       visible: true,
       label: 'Date Picker',
-      value: undefined,
-      onChange: (v) => updateFilterValue('Date', v),
+      value: new Date(),
+      startDate: startDate,
+      endDate: endDate,
+      onChange: (v) => {
+        updateFilterValue('Date', v);
+        setStartDate(v.startDate);
+        setEndDate(v.endDate);
+        console.log(v?.startDate, v?.endDate);
+      },
       size: 2.5,
-      type: 'date',
+      type: 'date-range',
     },
   ]);
+
+  useEffect(() => {
+    setFilters((prev) =>
+      prev.map((f) => ({
+        ...f,
+        startDate,
+        endDate,
+      })),
+    );
+  }, [startDate, endDate]);
 
   // Helper to update a single filter's value safely
   function updateFilterValue(id: string, value: any) {

@@ -100,16 +100,39 @@ export const renderFilter = (filter: IFilterConfig, drawerOpen?: boolean) => {
         />
       );
 
-    case 'date-range':
+    // case 'date-range':
+    //   return (
+    //     <MDSDateRangePicker
+    //       startDate={filter.startDate ? new Date(filter.startDate) : undefined}
+    //       endDate={filter.endDate ? new Date(filter.endDate) : undefined}
+    //       onChange={filter.onChange as (v: string | Date | null | undefined) => void}
+    //       visible={drawerOpen}
+    //       label={filter.label}
+    //     />
+    //   );
+case 'date-range':
+      // FIX: robustly extract dates. When the component updates, the parent might
+      // store the object { startDate, endDate } directly inside filter.value
+      const dateRangeValue = filter.value as any;
+      const startVal = dateRangeValue?.startDate || filter.startDate;
+      const endVal = dateRangeValue?.endDate || filter.endDate;
+
       return (
         <MDSDateRangePicker
-          startDate={filter.startDate ? new Date(filter.startDate) : undefined}
-          endDate={filter.endDate ? new Date(filter.endDate) : undefined}
-          onChange={filter.onChange as (v: string | Date | null | undefined) => void}
+          startDate={startVal ? new Date(startVal) : undefined}
+          endDate={endVal ? new Date(endVal) : undefined}
+          onChange={(start, end) => {
+            // FIX: Package the two arguments into a single object so your
+            // DemoFilter's single-argument onChange(v) can receive both!
+            if (filter.onChange) {
+              (filter.onChange as any)({ startDate: start, endDate: end });
+            }
+          }}
           visible={drawerOpen}
           label={filter.label}
         />
       );
+
 
     case 'combobox':
       return (
