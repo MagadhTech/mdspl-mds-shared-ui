@@ -17,7 +17,7 @@ export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
 
   useEffect(() => {
     console.log('running first ');
-    setStartDate(dayjs().subtract(7, 'day').format('YYYY-MM-DD'));
+    setStartDate(dayjs().subtract(30, 'day').format('YYYY-MM-DD'));
     setEndDate(dayjs().format('YYYY-MM-DD'));
   }, []);
 

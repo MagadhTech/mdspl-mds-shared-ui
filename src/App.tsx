@@ -26,13 +26,11 @@ const MenuContent = withChildren(Menu.Content);
 const MenuTrigger = withChildren(Menu.Trigger);
 
 function App() {
-  // const [pageSize, setPageSize] = useState(50);
-  // const [page, setPage] = useState(1);
   const [openDelete, setOpenDelete] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const { page, limit, setLimit, setPage } = usePagination({
     initialPage: 1,
-    initialLimit: 20,
+    initialLimit: 50,
   });
 
   const headers: Column<UserRow>[] = [
@@ -47,7 +45,7 @@ function App() {
     },
     {
       id: 'email',
-      label: 'Email',
+      label: <span style={{ color: 'red' }}>Email</span>,
       minWidth: 300,
       render: (row) => <span style={{ color: 'blue', fontSize: 12 }}>{row.email}</span>,
     },
