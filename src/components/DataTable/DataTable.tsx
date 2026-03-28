@@ -39,7 +39,7 @@ export default function DataTable<T extends { id: string | number }>({
   onRowSelectEvent = 'left',
   enableColumnVisibility = true,
   dataType = 'pagination',
-  manualPagination = false, // Default false, but we auto-detect below
+  manualPagination = false,
 }: ExtendedDataTableProps<T>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
@@ -117,7 +117,15 @@ export default function DataTable<T extends { id: string | number }>({
         items={effectiveColumns.map((c) => c.id)}
         strategy={horizontalListSortingStrategy}
       >
-        <Box flex="1" minH={0} display="flex" flexDirection="column" p={2}>
+        <Box
+          flex="1"
+          minH={0}
+          display="flex"
+          flexDirection="column"
+          p={2}
+          background={'white'}
+          borderRadius={'sm'}
+        >
           <Box
             ref={tableContainerRef}
             flex="1"
@@ -187,7 +195,7 @@ export default function DataTable<T extends { id: string | number }>({
           </Box>
 
           {dataType === 'pagination' && (
-            <Box mt={0.5}>
+            <Box mt={0.5} bg={'gray.100'} color={'gray.600'} p={2}>
               <TablePagination
                 totalCount={totalCount}
                 pageSize={pageSize}
@@ -206,7 +214,7 @@ export default function DataTable<T extends { id: string | number }>({
           )}
 
           {dataType === 'infinite' && (
-            <Box mt={2} px={2} fontSize="sm" color="gray.500">
+            <Box mt={2} px={2} fontSize="sm" color="white">
               Showing {displayData.length} rows
             </Box>
           )}

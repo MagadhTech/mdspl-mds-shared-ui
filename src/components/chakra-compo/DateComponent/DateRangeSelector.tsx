@@ -71,7 +71,7 @@ export default function MDSDateRangePicker({
   startDate,
   endDate,
   onChange,
-  width = '280px',
+  width = '100%',
   showLabel = true,
   label = 'Select date range',
   visible = true,

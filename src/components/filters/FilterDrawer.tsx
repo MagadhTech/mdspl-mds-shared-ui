@@ -88,10 +88,6 @@ export const renderFilter = (filter: IFilterConfig, drawerOpen?: boolean) => {
 
     case 'date':
       return (
-        // <DateRangeFilter
-        //   value={filter.value as string}
-        //   onChange={filter.onChange as (v: string | undefined) => void}
-        // />
         <MDSDatePicker
           value={filter.value as Date}
           onChange={filter.onChange as (v: string | Date | null) => void}
@@ -100,19 +96,7 @@ export const renderFilter = (filter: IFilterConfig, drawerOpen?: boolean) => {
         />
       );
 
-    // case 'date-range':
-    //   return (
-    //     <MDSDateRangePicker
-    //       startDate={filter.startDate ? new Date(filter.startDate) : undefined}
-    //       endDate={filter.endDate ? new Date(filter.endDate) : undefined}
-    //       onChange={filter.onChange as (v: string | Date | null | undefined) => void}
-    //       visible={drawerOpen}
-    //       label={filter.label}
-    //     />
-    //   );
-case 'date-range':
-      // FIX: robustly extract dates. When the component updates, the parent might
-      // store the object { startDate, endDate } directly inside filter.value
+    case 'date-range':
       const dateRangeValue = filter.value as any;
       const startVal = dateRangeValue?.startDate || filter.startDate;
       const endVal = dateRangeValue?.endDate || filter.endDate;
@@ -122,8 +106,6 @@ case 'date-range':
           startDate={startVal ? new Date(startVal) : undefined}
           endDate={endVal ? new Date(endVal) : undefined}
           onChange={(start, end) => {
-            // FIX: Package the two arguments into a single object so your
-            // DemoFilter's single-argument onChange(v) can receive both!
             if (filter.onChange) {
               (filter.onChange as any)({ startDate: start, endDate: end });
             }
@@ -133,20 +115,21 @@ case 'date-range':
         />
       );
 
-
+    // Inside renderFilter function
     case 'combobox':
       return (
         <MDSCombobox
-          visible={true}
           label={filter.label}
-          // value={filter.value }
-          // items={filter.options?.map((item) => ({
-          //   ...item,
-          //   label: String(item.label),
-          // }))}
-          itemToString={(i) => String(i.label)}
-          itemToValue={(i: { value: string }) => i.value}
-          renderItem={(item: { label: string; value: string }) => <span>{item.label}</span>}
+          value={filter.value}
+          items={filter.options || []}
+          itemToString={(i: any) => i?.label || ''}
+          itemToValue={(i: any) => i?.value || ''}
+          onSelect={(selected) => {
+            filter.onChange?.(selected);
+          }}
+          renderItem={(item: any) => <Text fontSize="sm">{item.label}</Text>}
+          placeholder={filter.placeholder || 'Search...'}
+          visible={drawerOpen}
         />
       );
 
@@ -172,6 +155,7 @@ export const FiltersDrawer = ({
   onReorder,
   open,
   onOpenChange,
+  maxToolbarUnits,
 }: DrawerProps) => {
   const [presets, setPresets] = useState<PresetItem[]>([]);
 
@@ -212,6 +196,45 @@ export const FiltersDrawer = ({
     });
   };
 
+  const handleSafeVisibilityChange = (id: string, isVisible: boolean) => {
+    if (isVisible && maxToolbarUnits !== undefined) {
+      const totalActiveUnits = filters
+        .filter((f) => f.visible)
+        .reduce((sum, f) => sum + (f.size ?? 1), 0);
+
+      const filterToEnable = filters.find((f) => f.id === id);
+      const addedSize = filterToEnable?.size ?? 1;
+
+      if (totalActiveUnits + addedSize > maxToolbarUnits) {
+        alert(
+          `Limit reached! You can only use up to ${maxToolbarUnits} toolbar units. Please disable another filter first.`,
+        );
+        return; // Block the state update
+      }
+    }
+    onVisibilityChange?.(id, isVisible);
+  };
+
+  const handleSafeSizeChange = (id: string, newSize: number) => {
+    if (maxToolbarUnits !== undefined) {
+      const targetFilter = filters.find((f) => f.id === id);
+
+      // We only care if the filter is currently active in the toolbar
+      if (targetFilter?.visible) {
+        // Calculate the total size of all OTHER active filters
+        const totalOtherUnits = filters
+          .filter((f) => f.visible && f.id !== id)
+          .reduce((sum, f) => sum + (f.size ?? 1), 0);
+
+        // If the other filters + the new size exceeds the max, block the slider from moving further
+        if (totalOtherUnits + newSize > maxToolbarUnits) {
+          return; // Silently return so the slider just "stops" at the max allowed value
+        }
+      }
+    }
+    onSizeChange?.(id, newSize);
+  };
+
   return (
     <HStack wrap="wrap">
       <DrawerRoot size={filterDrawerSize} open={open} onOpenChange={onOpenChange}>
@@ -250,23 +273,21 @@ export const FiltersDrawer = ({
                   </TabsList>
 
                   <TabsContent value="view">
-                    {filters
-                      .filter((f) => f.visible)
-                      .map((f) => (
-                        <VStack
-                          key={f.id}
-                          align="stretch"
-                          border="1px solid"
-                          borderColor="gray.200"
-                          flex={f.size ?? 1}
-                          minW={`${(f.size ?? 1) * 100}px`}
-                          rounded="md"
-                          p={3}
-                          mb={3}
-                        >
-                          {renderFilter(f, open)}
-                        </VStack>
-                      ))}
+                    {filters.map((f) => (
+                      <VStack
+                        key={f.id}
+                        align="stretch"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        flex={f.size ?? 1}
+                        minW={`${(f.size ?? 1) * 100}px`}
+                        rounded="md"
+                        p={3}
+                        mb={3}
+                      >
+                        {renderFilter(f, open)}
+                      </VStack>
+                    ))}
                   </TabsContent>
 
                   <TabsContent value="settings">
@@ -290,8 +311,8 @@ export const FiltersDrawer = ({
                           <SortableFilterItem
                             key={f.id}
                             filter={f}
-                            onVisibilityChange={onVisibilityChange}
-                            onSizeChange={onSizeChange}
+                            onVisibilityChange={handleSafeVisibilityChange}
+                            onSizeChange={handleSafeSizeChange}
                           />
                         ))}
                       </SortableContext>

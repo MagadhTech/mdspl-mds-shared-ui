@@ -12,7 +12,7 @@ interface VirtualRowProps<T> {
   columns: Column<T>[];
   visibility: Record<string, boolean>;
   onRowSelect?: (row: T, event?: React.MouseEvent) => void;
-  onRowSelectEvent?: 'left' | 'right';
+  onRowSelectEvent?: 'left' | 'right' | 'both';
   index: number;
   height: number;
 }
@@ -30,18 +30,20 @@ function VirtualRowComponent<T extends { id: string | number }>({
   return (
     <Table.Row
       data-index={index}
-      onClick={(e) => onRowSelectEvent === 'left' && onRowSelect?.(row, e)}
+      onClick={(e) => {
+        if (onRowSelectEvent === 'left' || onRowSelectEvent === 'both') {
+          onRowSelect?.(row, e);
+        }
+      }}
       cursor={onRowSelect ? 'pointer' : 'default'}
       h={`${height}px`}
       _hover={{ bg: 'gray.50' }}
-      onContextMenu={
-            onRowSelectEvent === 'right'
-              ? (e) => {
-                  e.preventDefault();
-                  onRowSelect?.(row,e);
-                }
-              : undefined
-          }
+      onContextMenu={(e) => {
+        if (onRowSelectEvent === 'right' || onRowSelectEvent === 'both') {
+          e.preventDefault();
+          onRowSelect?.(row, e);
+        }
+      }}
     >
       {columns.map((col) => {
         if (col.id !== ACTIONS_COLUMN_ID && visibility[col.id] === false) return null;
@@ -51,8 +53,8 @@ function VirtualRowComponent<T extends { id: string | number }>({
             key={col.id}
             py={0}
             height={`${height}px`}
-            width={`${columnWidths[col.id] ?? 30}px`}
-            minWidth={col.minWidth || '40px'}
+            width={`${columnWidths[col.id] ?? 20}px`}
+            minWidth={col.minWidth || '20px'}
             maxWidth={`${columnWidths[col.id] ?? 180}px`}
             whiteSpace="nowrap"
             overflow="hidden"
@@ -84,7 +86,7 @@ export default function TableRows<T extends { id: string | number }>({
   columns: Column<T>[];
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   onRowSelect?: (row: T, event?: React.MouseEvent) => void;
-  onRowSelectEvent?: 'left' | 'right';
+  onRowSelectEvent?: 'left' | 'right' | 'both';
   rowHeight: number;
 }) {
   const { visibility } = useStore(tableStore);

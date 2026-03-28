@@ -60,7 +60,6 @@ const MDSSelectBox = ({
         variant={variant}
         size={size}
         width={width}
-        // 3. Handle undefined value by passing empty array
         value={value ? [value] : []}
         onValueChange={(details) => {
           onChange?.(details.value[0]);
@@ -69,11 +68,12 @@ const MDSSelectBox = ({
         <SelectHiddenSelect />
 
         {visible && <SelectLabel>{label}</SelectLabel>}
+        {/* <SelectLabel>{label}</SelectLabel>  */}
 
         <SelectControl>
           <SelectTrigger>
             <SelectValueText placeholder={placeholder}>
-              {selectedOption?.displayValue ?? selectedOption?.label}
+              {selectedOption ? (selectedOption.displayValue ?? selectedOption.label) : ''}
             </SelectValueText>
           </SelectTrigger>
 

@@ -28,7 +28,7 @@ const MDSInput = ({
 }: IMDSInputTypes) => {
   return (
     <FieldRoot width={width}>
-      {visible && <FieldLabel>{label}</FieldLabel>}
+      {/* {visible && <FieldLabel>{label}</FieldLabel>} */}
       <InputGroup startElement={icon}>
         <Input
           value={value}

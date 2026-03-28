@@ -50,3 +50,6 @@ export type { IMDSDatePickerTypes } from './components/chakra-compo/DateComponen
 
 export { default as MDSDateRangePicker } from './components/chakra-compo/DateComponent/DateRangeSelector';
 export { default as MDSDatePicker } from './components/chakra-compo/DateComponent/DateSelector';
+
+export { default as MDSTooltip } from './components/chakra-compo/tooltip';
+export type { MDSTooltipProps } from './components/chakra-compo/tooltip';

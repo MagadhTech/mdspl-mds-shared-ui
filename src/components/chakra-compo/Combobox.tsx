@@ -1,136 +1,130 @@
-import { Combobox, HStack, Span, Spinner, Text, useListCollection } from '@chakra-ui/react';
+'use client';
+
+import {
+  Combobox,
+  createListCollection,
+  HStack,
+  Portal,
+  Spinner,
+  Text,
+  Box,
+} from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import { withChildren } from '../../utils/chakra-slot';
 import type { IMDSComboboxTypes } from './compo_types';
 
+// Use your MDS wrapper utility to ensure 'children' prop is accepted
 const ComboboxRoot = withChildren(Combobox.Root);
-const ComboboxControl = withChildren(Combobox.Control);
 const ComboboxInput = withChildren(Combobox.Input);
-const ComboboxIndicatorGroup = withChildren(Combobox.IndicatorGroup);
-const ComboboxClearTrigger = withChildren(Combobox.ClearTrigger);
 const ComboboxTrigger = withChildren(Combobox.Trigger);
-const ComboboxPositioner = withChildren(Combobox.Positioner);
+const ComboboxControl = withChildren(Combobox.Control);
 const ComboboxContent = withChildren(Combobox.Content);
+const ComboboxPositioner = withChildren(Combobox.Positioner);
+const ComboboxItem = withChildren(Combobox.Item);
+const ComboboxItemText = withChildren(Combobox.ItemText);
 
 export default function MDSCombobox<T>({
-  label,
+  label = "Select Option",
   size = 'sm',
-  width = '100%',
-  variant = 'outline',
-
+  width = '200px',
   items = [],
-  itemToString,
-  itemToValue,
-  renderItem,
+  itemToString = (i: any) => i?.label || '',
+  itemToValue = (i: any) => i?.value || '',
+  renderItem = (i: any) => i?.label || '',
   value,
-
   loading,
-  error,
-  errorMessage,
-  placeholder,
-  helpText,
-
-  onInputChange,
+  placeholder = "Search...",
   onSelect,
   visible = true,
-
-  // 🔑 SLOT PROPS
-  rootProps,
-  inputProps,
-  controlProps,
-  contentProps,
-  itemProps,
 }: IMDSComboboxTypes<T>) {
   const [inputValue, setInputValue] = useState('');
 
-  const safeItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
+  // 1. DUMMY DATA FOR TESTING (Fallback)
+  const dummyItems = useMemo(() => [
+    { label: 'Option 1', value: '1' },
+    { label: 'Option 2', value: '2' },
+    { label: 'Option 3', value: '3' },
+  ], []);
 
-  const { collection, set } = useListCollection<T>({
-    initialItems: safeItems,
-    itemToString,
-    itemToValue,
-  });
+  const activeItems = items && items.length > 0 ? items : (dummyItems as unknown as T[]);
 
-  const filteredItems = useMemo(() => {
-    if (!inputValue) return safeItems;
-
-    const query = inputValue.toLowerCase();
-
-    return safeItems.filter((item) => itemToString(item).toLowerCase().includes(query));
-  }, [items, inputValue, itemToString]);
-
-  useEffect(() => {
-    set(filteredItems);
-  }, [filteredItems, set]);
-
+  // 2. Sync input text with selected value
   useEffect(() => {
     if (value) {
       setInputValue(itemToString(value));
+    } else {
+      setInputValue('');
     }
   }, [value, itemToString]);
 
+  // 3. Collection source
+  const collection = useMemo(() => {
+    return createListCollection({
+      items: activeItems,
+      itemToString,
+      itemToValue,
+    });
+  }, [activeItems, itemToString, itemToValue]);
+
+  if (!visible) return null;
+
   return (
-    <ComboboxRoot
-      width={width}
-      size={size}
-      variant={variant}
-      collection={collection}
-      placeholder={placeholder}
-      onInputValueChange={(e) => {
-        onInputChange?.(e.inputValue);
-        setInputValue(e.inputValue);
-      }}
-      value={value ? [itemToValue(value)] : []}
-      onValueChange={(e) => {
-        const value = e.value?.[0];
-        if (!value) return;
+    <Box minW={width}>
+      <ComboboxRoot
+        width="100%"
+        size={size}
+        collection={collection}
+        inputValue={inputValue}
+        onInputValueChange={(e) => setInputValue(e.inputValue)}
+        value={value ? [itemToValue(value)] : []}
+        onValueChange={(e) => {
+          const nextValue = e.value[0];
+          const selected = activeItems.find((item) => itemToValue(item) === nextValue);
+          if (selected) onSelect?.(selected);
+        }}
+      >
+        {label && (
+          <Text fontSize="xs" fontWeight="medium" mb="1" color="gray.600">
+            {label}
+          </Text>
+        )}
 
-        const selected = collection.items.find((item) => itemToValue(item) === value);
-
-        if (selected) {
-          onSelect?.(selected);
-        }
-      }}
-      positioning={{ sameWidth: false, placement: 'bottom-start' }}
-      {...rootProps}
-    >
-      {visible && label && <Text fontSize="sm">{label}</Text>}
-
-      <ComboboxControl {...controlProps}>
-        <ComboboxInput placeholder={placeholder ?? 'Type to search'} {...inputProps} />
-        <ComboboxIndicatorGroup>
-          <ComboboxClearTrigger />
+        <ComboboxControl>
+          <ComboboxInput
+            placeholder={placeholder}
+            bg="white"
+            px={2}
+          />
           <ComboboxTrigger />
-        </ComboboxIndicatorGroup>
-      </ComboboxControl>
+        </ComboboxControl>
 
-      <ComboboxPositioner>
-        <ComboboxContent minW="sm" {...contentProps}>
-          {loading ? (
-            <HStack p="2">
-              <Spinner size="xs" borderWidth="1px" />
-              <Span>Loading...</Span>
-            </HStack>
-          ) : error ? (
-            <Text p="2" color="red.500" fontSize="sm">
-              {errorMessage || 'Something went wrong'}
-            </Text>
-          ) : (
-            collection.items.map((item) => (
-              <Combobox.Item key={itemToValue(item)} item={item} {...itemProps}>
-                {renderItem(item)}
-                <Combobox.ItemIndicator />
-              </Combobox.Item>
-            ))
-          )}
-
-          {helpText && !error && !loading && (
-            <Text p="2" color="fg.muted" fontSize="sm">
-              {helpText}
-            </Text>
-          )}
-        </ComboboxContent>
-      </ComboboxPositioner>
-    </ComboboxRoot>
+        <Portal>
+          <ComboboxPositioner zIndex="max">
+            <ComboboxContent bg="white" boxShadow="md" py={1} borderRadius="md" minW="200px">
+              {loading ? (
+                <HStack p="3" justify="center">
+                  <Spinner size="xs" />
+                  <Text fontSize="sm">Loading...</Text>
+                </HStack>
+              ) : activeItems.length === 0 ? (
+                <Text p="3" fontSize="sm" color="gray.500">No results found</Text>
+              ) : (
+                collection.items.map((item) => (
+                  <ComboboxItem
+                    key={itemToValue(item)}
+                    item={item}
+                    px={2}
+                    py={1.5}
+                    _hover={{ bg: "blue.50", cursor: "pointer" }}
+                  >
+                    <ComboboxItemText>{renderItem(item)}</ComboboxItemText>
+                  </ComboboxItem>
+                ))
+              )}
+            </ComboboxContent>
+          </ComboboxPositioner>
+        </Portal>
+      </ComboboxRoot>
+    </Box>
   );
 }

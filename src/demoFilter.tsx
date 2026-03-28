@@ -35,6 +35,20 @@ export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
       type: 'text',
     },
     {
+      id: 'combobox-some',
+      visible: false,
+      label: 'Combobox',
+      value: null,
+      onChange: (v) => updateFilterValue('combobox-some', v),
+      size: 3.0,
+      type: 'combobox',
+      options: [
+        { label: 'Option 1', value: 'option1' },
+        { label: 'Option 2', value: 'option2' },
+        { label: 'Option 3', value: 'option3' },
+      ],
+    },
+    {
       id: 'checkbox',
       visible: true,
       label: 'Checkbox',
@@ -43,11 +57,13 @@ export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
       size: 1,
       type: 'checkbox',
     },
+
     {
       id: 'select',
       visible: true,
       label: 'Select Box',
       value: undefined, // Start undefined
+      placeholder: 'Select an option',
       onChange: (v) => updateFilterValue('select', v),
       size: 1.5,
       type: 'select',
@@ -57,6 +73,7 @@ export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
         { label: 'Option 3', value: 'option3' },
       ],
     },
+
     {
       id: 'Date',
       visible: true,
@@ -129,31 +146,33 @@ export const DemoFilter = ({ search, onSearchChange }: HeaderProps) => {
   );
 
   return (
-    <FiltersToolBar
-      title={
-        <Text>
-          <b>District Price History</b>
-        </Text>
-      }
-      filters={filters}
-      onVisibilityChange={handleVisibility}
-      onReorder={(reordered) => {
-        saveOrder(
-          'district-price-history-filter',
-          reordered.map((f) => f.id),
-        );
-        setFilters(reordered);
-      }}
-      onSizeChange={handleSize}
-      pageKey="district-price-history-filter"
-      onClear={handleClear}
-      maxToolbarUnits={5}
-      currentFilters={activeFilterState}
-      onLoadPreset={(loadedFilters, name) => {
-        setFilters(loadedFilters);
-        setActivePresetName(name ?? null);
-      }}
-      activePresetName={activePresetName}
-    />
+    <div style={{}}>
+      <FiltersToolBar
+        title={
+          <Text>
+            <b>District Price History</b>
+          </Text>
+        }
+        filters={filters}
+        onVisibilityChange={handleVisibility}
+        onReorder={(reordered) => {
+          saveOrder(
+            'testing-price-history-filter',
+            reordered.map((f) => f.id),
+          );
+          setFilters(reordered);
+        }}
+        onSizeChange={handleSize}
+        pageKey="testing-price-history-filter"
+        onClear={handleClear}
+        maxToolbarUnits={10}
+        currentFilters={activeFilterState}
+        onLoadPreset={(loadedFilters, name) => {
+          setFilters(loadedFilters);
+          setActivePresetName(name ?? null);
+        }}
+        activePresetName={activePresetName}
+      />
+    </div>
   );
 };

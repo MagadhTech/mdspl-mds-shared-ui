@@ -10,30 +10,47 @@ export const FiltersToolBar = ({
   onReorder,
   onSizeChange,
   onClear,
-  maxToolbarUnits,
+  maxToolbarUnits, // The user passes 10 here
   pageKey,
   onLoadPreset,
   activePresetName,
   filterDrawerSize = 'sm',
 }: IMainFilterType) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  let currentUnits = 0;
+
   return (
-    <HStack wrap="wrap" pl={2} pr={2} width="100%" justify="space-between">
+    <HStack wrap="wrap" pl={2} pr={2} width="100%" justify="space-between" alignItems="center">
       {title}
 
-      <HStack gapX={1}>
+      <HStack gapX={1} align={'center'}>
         {filters
           .filter((filter) => filter.visible !== false)
-          .map((filter) => (
-            <HStack
-              flex={filter.size ?? 1}
-              minW={`${(filter.size ?? 1) * 100}px`}
-              key={filter.id}
-              alignItems={'center'}
-            >
-              {renderFilter(filter)}
-            </HStack>
-          ))}
+          .map((filter) => {
+            const filterSize = filter.size ?? 1;
+
+            const isOverLimit =
+              maxToolbarUnits !== undefined && currentUnits + filterSize > maxToolbarUnits;
+
+            if (!isOverLimit) {
+              currentUnits += filterSize;
+            }
+
+            return (
+              <HStack
+                flex={filterSize}
+                minW={`${filterSize * 100}px`}
+                key={filter.id}
+                // alignItems={'center'}
+                opacity={isOverLimit ? 0.4 : 1}
+                pointerEvents={isOverLimit ? 'none' : 'auto'}
+                cursor={isOverLimit ? 'not-allowed' : 'auto'}
+              >
+                {renderFilter(filter)}
+              </HStack>
+            );
+          })}
 
         <FiltersDrawer
           filterDrawerSize={filterDrawerSize}

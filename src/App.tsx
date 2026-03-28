@@ -95,16 +95,34 @@ function App() {
   return (
     <div
       style={{
-        border: '1px solid red',
-        height: '100vh',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        padding: 16,
-        overflow: 'hidden',
+        paddingTop: 10,
       }}
     >
-      <DemoFilter search="" onSearchChange={() => {}} />
-
+      <DemoFilter onSearchChange={() => {}} search="" />
+      {/* <MDSCombobox<UserRow>
+        label="Select User"
+        items={dummyData}
+        placeholder="Search by name..."
+        // This is used for filtering the search
+        itemToString={(item) => item.name}
+        // This is used for the underlying value/key
+        itemToValue={(item) => String(item.id)}
+        // This is how the item looks in the dropdown list
+        renderItem={(item) => (
+          <VStack align="start" gap="0">
+            <Text fontSize="sm">{item.name}</Text>
+            <Text fontSize="xs" color="fg.muted">
+              {item.email}
+            </Text>
+          </VStack>
+        )}
+        onSelect={(selected) => {
+          console.log('Selected user:', selected);
+        }}
+      /> */}
       <DataTable<UserRow>
         tableId="onslldj"
         headers={headers}
@@ -124,7 +142,6 @@ function App() {
         enableColumnVisibility={true}
         dataType="pagination"
       />
-
       <MDSConfirmDeleteDialog
         open={openDelete}
         onClose={() => setOpenDelete(false)}
@@ -135,7 +152,6 @@ function App() {
         confirmLabel="Delete"
         isLoading={false}
       />
-
       <MDSConfirmActionDialog
         open={openConfirm}
         onClose={() => setOpenConfirm(false)}
@@ -146,6 +162,7 @@ function App() {
         cancelLabel="Cancel"
         isLoading={false}
       />
+      {/* </div> */}
     </div>
   );
 }

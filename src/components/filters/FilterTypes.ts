@@ -5,11 +5,19 @@ export interface FilterOption<T = unknown> {
   value: T;
   displayValue?: string | ReactNode;
 }
-export interface IFilterConfig<T = unknown> {
+export interface IFilterConfig<T = any> {
   id: string;
   label: string;
-  type?: 'date' | 'text' | 'select' | 'checkbox' | 'radio' | 'number' | 'combobox' | 'date-range';
-  value: string | number | undefined | boolean | Date;
+  type?:
+    | 'date'
+    | 'text'
+    | 'select'
+    | 'checkbox'
+    | 'radio'
+    | 'number'
+    | 'combobox'
+    | 'date-range'
+  value: string | number | undefined | boolean | Date | any;
   options?: FilterOption<T>[];
   onChange?: (value: any) => void;
   visible: boolean;

@@ -56,7 +56,7 @@ export default function TablePagination({
     <Box width="100%">
       <HStack justify="space-between" mx="auto" flexWrap="wrap">
         <HStack>
-          <Text fontSize="sm" color="gray.600" _dark={{ color: 'gray.400' }}>
+          <Text fontSize="sm" _dark={{ color: 'gray.400' }}>
             Rows per page:
           </Text>
 
@@ -66,6 +66,7 @@ export default function TablePagination({
             width="60px"
             onValueChange={(value) => onPageSizeChange?.(Number(value.items[0].value))}
             value={[String(pageSize)]}
+            color={'gray.600'}
           >
             <SelectHiddenSelect />
             <SelectControl>
@@ -89,7 +90,7 @@ export default function TablePagination({
               </SelectPositioner>
             </Portal>
           </Select.Root>
-          <Text fontSize="sm" color="gray.600" _dark={{ color: 'gray.400' }}>
+          <Text fontSize="sm" _dark={{ color: 'gray.400' }}>
             of {totalCount}
           </Text>
         </HStack>
