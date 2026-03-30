@@ -1,6 +1,7 @@
 import { IconButton, Menu, Portal, Spinner } from '@chakra-ui/react';
 import { EllipsisIcon } from 'lucide-react';
 import { useState } from 'react';
+import GroupedDataCombobox from './components/auto-complete/filter.autocomplete';
 import MDSConfirmActionDialog from './components/chakra-compo/ConfirmDialogBox';
 import MDSConfirmDeleteDialog from './components/chakra-compo/DeleteDialogBox';
 import usePagination from './components/customHooks/Pagination.hook';
@@ -102,27 +103,10 @@ function App() {
       }}
     >
       <DemoFilter onSearchChange={() => {}} search="" />
-      {/* <MDSCombobox<UserRow>
-        label="Select User"
-        items={dummyData}
-        placeholder="Search by name..."
-        // This is used for filtering the search
-        itemToString={(item) => item.name}
-        // This is used for the underlying value/key
-        itemToValue={(item) => String(item.id)}
-        // This is how the item looks in the dropdown list
-        renderItem={(item) => (
-          <VStack align="start" gap="0">
-            <Text fontSize="sm">{item.name}</Text>
-            <Text fontSize="xs" color="fg.muted">
-              {item.email}
-            </Text>
-          </VStack>
-        )}
-        onSelect={(selected) => {
-          console.log('Selected user:', selected);
-        }}
-      /> */}
+      <GroupedDataCombobox
+        baseURL="https://dev-api.mgdh.in/master/api/v1/search/user-group"
+        // filterKey="partner"
+      />
       <DataTable<UserRow>
         tableId="onslldj"
         headers={headers}

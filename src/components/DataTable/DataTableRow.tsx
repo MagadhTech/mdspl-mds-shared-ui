@@ -2,12 +2,11 @@
 
 import { Table } from '@chakra-ui/react';
 import { useStore } from '@tanstack/react-store';
-import { Virtualizer } from '@tanstack/react-virtual';
 import React, { memo } from 'react';
 import { tableStore } from './tableStore';
 import { ACTIONS_COLUMN_ID, Column } from './types';
 
-interface VirtualRowProps<T> {
+interface RowProps<T> {
   row: T;
   columns: Column<T>[];
   visibility: Record<string, boolean>;
@@ -17,7 +16,7 @@ interface VirtualRowProps<T> {
   height: number;
 }
 
-function VirtualRowComponent<T extends { id: string | number }>({
+function RowComponent<T extends { id: string | number }>({
   row,
   columns,
   visibility,
@@ -25,7 +24,7 @@ function VirtualRowComponent<T extends { id: string | number }>({
   onRowSelectEvent,
   index,
   height,
-}: VirtualRowProps<T>) {
+}: RowProps<T>) {
   const { columnWidths } = useStore(tableStore);
   return (
     <Table.Row
@@ -54,7 +53,7 @@ function VirtualRowComponent<T extends { id: string | number }>({
             py={0}
             height={`${height}px`}
             width={`${columnWidths[col.id] ?? 20}px`}
-            minWidth={col.minWidth || '20px'}
+            minWidth={col.minWidth ?? '20px'}
             maxWidth={`${columnWidths[col.id] ?? 180}px`}
             whiteSpace="nowrap"
             overflow="hidden"
@@ -72,64 +71,37 @@ function VirtualRowComponent<T extends { id: string | number }>({
   );
 }
 
-const VirtualRow = memo(VirtualRowComponent) as typeof VirtualRowComponent;
+const MemoizedRow = memo(RowComponent) as typeof RowComponent;
 
 export default function TableRows<T extends { id: string | number }>({
   data,
   columns,
-  rowVirtualizer,
   onRowSelect,
   onRowSelectEvent = 'left',
   rowHeight,
 }: {
   data: T[];
   columns: Column<T>[];
-  rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   onRowSelect?: (row: T, event?: React.MouseEvent) => void;
   onRowSelectEvent?: 'left' | 'right' | 'both';
   rowHeight: number;
 }) {
   const { visibility } = useStore(tableStore);
 
-  const virtualItems = rowVirtualizer.getVirtualItems();
-
-  const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
-  const paddingBottom =
-    virtualItems.length > 0
-      ? rowVirtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
-      : 0;
-
   return (
     <Table.Body>
-      {paddingTop > 0 && (
-        <Table.Row h={`${paddingTop}px`}>
-          <Table.Cell colSpan={columns.length} p={0} border="none" h={`${paddingTop}px`} />
-        </Table.Row>
-      )}
-
-      {virtualItems.map((virtualRow) => {
-        const row = data[virtualRow.index];
-        if (!row) return null;
-
-        return (
-          <VirtualRow
-            key={row.id}
-            index={virtualRow.index}
-            row={row}
-            columns={columns}
-            visibility={visibility}
-            onRowSelect={onRowSelect}
-            onRowSelectEvent={onRowSelectEvent}
-            height={rowHeight}
-          />
-        );
-      })}
-
-      {paddingBottom > 0 && (
-        <Table.Row h={`${paddingBottom}px`}>
-          <Table.Cell colSpan={columns.length} p={0} border="none" h={`${paddingBottom}px`} />
-        </Table.Row>
-      )}
+      {data.map((row, index) => (
+        <MemoizedRow
+          key={row.id}
+          index={index}
+          row={row}
+          columns={columns}
+          visibility={visibility}
+          onRowSelect={onRowSelect}
+          onRowSelectEvent={onRowSelectEvent}
+          height={rowHeight}
+        />
+      ))}
     </Table.Body>
   );
 }

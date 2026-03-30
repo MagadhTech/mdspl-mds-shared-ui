@@ -39,19 +39,27 @@ export default function TableHeader() {
         backgroundColor: 'white',
       }}
     >
-      <Table.Row height="28px">
+      <Table.Row>
         {orderedColumns.map((col) => {
           if (col.id === VISIBILITY_COLUMN_ID) {
             return (
-              <Table.ColumnHeader key={col.id} bg={'gray.100'} w={100}>
+              <Table.ColumnHeader
+                key={col.id}
+                bg={'gray.100'}
+                w="40px"
+                px={1} // Overriding Chakra default padding to keep it compact
+                py={1}
+                h="32px"
+              >
                 <ColumnVisibilityMenu visibility={visibility} />
               </Table.ColumnHeader>
             );
           }
 
-          // FIX: Added !col.disableSort check
+          // Keeps S.No. and Actions from showing sort arrows
           const isSortable = col.type !== 'actions' && col.type !== 'visibility';
           const isSorted = sortColumn === col.id;
+          const isActions = col.id === ACTIONS_COLUMN_ID;
 
           return (
             <SortableHeaderCell
@@ -66,8 +74,10 @@ export default function TableHeader() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 4,
                   userSelect: 'none',
+                  fontSize: '12px', // Slightly smaller text for compactness
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {col.label}

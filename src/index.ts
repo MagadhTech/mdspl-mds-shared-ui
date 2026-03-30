@@ -53,3 +53,6 @@ export { default as MDSDatePicker } from './components/chakra-compo/DateComponen
 
 export { default as MDSTooltip } from './components/chakra-compo/tooltip';
 export type { MDSTooltipProps } from './components/chakra-compo/tooltip';
+
+export { default as GroupedDataCombobox } from './components/auto-complete/filter.autocomplete';
+export type { GroupedComboboxProps } from './components/auto-complete/filter.autocomplete';

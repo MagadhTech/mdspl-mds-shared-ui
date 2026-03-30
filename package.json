@@ -1,6 +1,6 @@
 {
   "name": "@mdspl/mds-shared-ui",
-  "version": "1.4.5",
+  "version": "1.4.8",
   "description": "Chakra UI v3 DataTable with sorting, pagination, column visibility & drag reorder",
   "author": "magadh",
   "license": "MIT",
@@ -34,7 +34,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@tanstack/react-store": "^0.8.0",
-    "@tanstack/react-virtual": "^3.13.18",
+    "@tanstack/react-virtual": "^3.13.23",
     "@tanstack/store": "^0.8.0",
     "@types/uuid": "^11.0.0",
     "dayjs": "^1.11.19",

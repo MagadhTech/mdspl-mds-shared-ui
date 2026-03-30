@@ -8,6 +8,7 @@ import { ArrowLeftRight, GripVertical } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { setColumnWidth } from './DataTableActions';
 import { tableStore } from './tableStore';
+import { ACTIONS_COLUMN_ID } from './types';
 
 export default function SortableHeaderCell({
   id,
@@ -27,9 +28,12 @@ export default function SortableHeaderCell({
   minW?: string | number;
 }) {
   const { columnWidths } = useStore(tableStore);
+
+  // Force exactly 30px for the actions column, otherwise use saved/default width
+  const isActions = id === ACTIONS_COLUMN_ID;
   const savedWidth = columnWidths[id];
   const defaultWidth = 100;
-  const widthPx = savedWidth ?? defaultWidth;
+  const widthPx = isActions ? 30 : (savedWidth ?? defaultWidth);
   const widthStyle = `${widthPx}px`;
 
   const startX = useRef(0);
@@ -38,10 +42,10 @@ export default function SortableHeaderCell({
   const { setNodeRef, attributes, listeners, transform, transition } = useSortable({ id });
 
   const onMouseDown = (e: React.MouseEvent) => {
+    if (isActions) return; // Disable resizing for actions column
     e.stopPropagation();
     startX.current = e.clientX;
 
-    // Find the parent <th> (resize Box → HStack → th)
     const thElement = (e.currentTarget as HTMLElement).closest('th');
     startWidth.current = thElement?.getBoundingClientRect().width || columnWidths[id] || 180;
 
@@ -67,42 +71,54 @@ export default function SortableHeaderCell({
       onClick={onClick}
       backgroundColor={backgroundColor}
       width={widthStyle}
-      minWidth={minW || '20px'}
+      minWidth={isActions ? '30px' : (minW || '20px')}
+      maxWidth={isActions ? '30px' : undefined}
+      px={2} // <-- Makes header compact horizontally
+      py={1} // <-- Makes header compact vertically
+      h="32px" // <-- Forces a strictly small height
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
         cursor,
-        borderRight,
+        borderRight: isActions ? 'none' : borderRight,
         boxSizing: 'border-box',
       }}
       bg={'gray.100'}
       {...attributes}
     >
-      <HStack position="relative" width="100%">
-        <span {...listeners}>
-          <GripVertical size={12} style={{ cursor: 'grab' }} />
-        </span>
-        {children}
+      <HStack position="relative" width="100%" gap={1}>
+        {!isActions && (
+          <span {...listeners} style={{ display: 'flex', alignItems: 'center' }}>
+            <GripVertical size={12} style={{ cursor: 'grab', color: '#a0aebc' }} />
+          </span>
+        )}
 
-        <Box
-          position="absolute"
-          right={0}
-          top={0}
-          h="100%"
-          w="10px"
-          cursor="col-resize"
-          onMouseDown={onMouseDown}
-          onMouseEnter={() => setShowResizeIcon(true)}
-          onMouseLeave={() => setShowResizeIcon(false)}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          zIndex={2}
-        >
-          {showResizeIcon && (
-            <ArrowLeftRight size={14} style={{ pointerEvents: 'none', opacity: 0.8 }} />
-          )}
+        {/* Ensures the content fits well even in the 30px space */}
+        <Box flex="1" overflow="hidden" display="flex" justifyContent={isActions ? 'center' : 'flex-start'}>
+          {children}
         </Box>
+
+        {!isActions && (
+          <Box
+            position="absolute"
+            right={-2} // shifted slightly to align better with border
+            top={0}
+            h="100%"
+            w="10px"
+            cursor="col-resize"
+            onMouseDown={onMouseDown}
+            onMouseEnter={() => setShowResizeIcon(true)}
+            onMouseLeave={() => setShowResizeIcon(false)}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            zIndex={2}
+          >
+            {showResizeIcon && (
+              <ArrowLeftRight size={14} style={{ pointerEvents: 'none', opacity: 0.8 }} />
+            )}
+          </Box>
+        )}
       </HStack>
     </Table.ColumnHeader>
   );

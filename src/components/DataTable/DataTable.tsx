@@ -185,7 +185,7 @@ export default function DataTable<T extends { id: string | number }>({
                 <TableRows
                   data={displayData}
                   columns={effectiveColumns}
-                  rowVirtualizer={rowVirtualizer}
+                  // rowVirtualizer={rowVirtualizer}
                   onRowSelect={onRowSelect}
                   onRowSelectEvent={onRowSelectEvent}
                   rowHeight={rowHeight}
