@@ -44,6 +44,10 @@ export interface GroupedComboboxProps {
   filterKey?: DataItem['group_type'];
   placeholder?: string;
   label?: string;
+  selectedId?: string | null;
+  setSelectedId?: (id: string | null) => void;
+  setFilterType?: (filterType: DataItem['group_type']) => void;
+  groupOrder?: DataItem['group_type'][];
 }
 
 const VISIBLE_LIMIT_PER_GROUP = 30; // Max items per group
@@ -53,6 +57,10 @@ const GroupedDataCombobox = ({
   filterKey,
   placeholder = 'Type to search...',
   label = 'Select Entry',
+  selectedId,
+  setSelectedId,
+  setFilterType,
+  groupOrder = ['partner', 'mo', 'district'],
 }: GroupedComboboxProps) => {
   const [items, setItems] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -77,9 +85,7 @@ const GroupedDataCombobox = ({
   }, [baseURL]);
 
   const baseItems: DataItem[] = useMemo(() => {
-    return filterKey
-      ? items.filter((item: DataItem) => item.group_type === filterKey)
-      : items;
+    return filterKey ? items.filter((item: DataItem) => item.group_type === filterKey) : items;
   }, [items, filterKey]);
 
   const displayData = useMemo(() => {
@@ -107,14 +113,12 @@ const GroupedDataCombobox = ({
     });
 
     const finalSlicedList: DataItem[] = [];
-    const groupOrder: ('partner' | 'mo' | 'district')[] = ['partner', 'mo', 'district'];
-
     let hasHiddenResults = false;
 
     groupOrder.forEach((groupType) => {
       const groupArray = groups[groupType];
 
-      if (groupArray.length > 0) {
+      if (groupArray && groupArray.length > 0) {
         groupArray.sort((a, b) => {
           const aName = a.name || a.label || '';
           const bName = b.name || b.label || '';
@@ -122,7 +126,7 @@ const GroupedDataCombobox = ({
         });
 
         if (groupArray.length > VISIBLE_LIMIT_PER_GROUP) {
-           hasHiddenResults = true;
+          hasHiddenResults = true;
         }
 
         finalSlicedList.push(...groupArray.slice(0, VISIBLE_LIMIT_PER_GROUP));
@@ -134,7 +138,7 @@ const GroupedDataCombobox = ({
       hasHiddenResults,
       totalMatches: activeList.length,
     };
-  }, [baseItems, inputValue]);
+  }, [baseItems, inputValue, groupOrder]);
 
   const { collection, set } = useListCollection<DataItem>({
     initialItems: [],
@@ -149,6 +153,23 @@ const GroupedDataCombobox = ({
   return (
     <ComboboxRoot
       collection={collection}
+      value={selectedId ? [selectedId] : []}
+      onValueChange={(e: { value: string[] }) => {
+        const selectedValue = e.value[0] || null;
+
+        // Update the selected ID
+        if (setSelectedId) {
+          setSelectedId(selectedValue);
+        }
+
+        // If a value is selected and setFilterType is provided, update the filter type
+        if (setFilterType && selectedValue) {
+          const selectedItem = baseItems.find((item) => item.id === selectedValue);
+          if (selectedItem) {
+            setFilterType(selectedItem.group_type);
+          }
+        }
+      }}
       onInputValueChange={(e: { inputValue: string }) => setInputValue(e.inputValue)}
       width="320px"
       disabled={loading}
