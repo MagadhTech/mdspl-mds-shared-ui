@@ -46,7 +46,7 @@ export interface GroupedComboboxProps {
   label?: string;
 }
 
-const VISIBLE_LIMIT = 30; // Max items to show at once
+const VISIBLE_LIMIT_PER_GROUP = 30; // Max items per group
 
 const GroupedDataCombobox = ({
   baseURL,
@@ -58,7 +58,6 @@ const GroupedDataCombobox = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [inputValue, setInputValue] = useState('');
 
-  // 1. Fetch Data
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
       try {
@@ -77,59 +76,72 @@ const GroupedDataCombobox = ({
     fetchData();
   }, [baseURL]);
 
-  // 2. Initial Grouping & Sorting (Runs once when data is fetched)
-  const sortedItems: DataItem[] = useMemo(() => {
-    const filtered: DataItem[] = filterKey
+  const baseItems: DataItem[] = useMemo(() => {
+    return filterKey
       ? items.filter((item: DataItem) => item.group_type === filterKey)
       : items;
-
-    const groupOrder: Record<DataItem['group_type'], number> = {
-      partner: 1,
-      mo: 2,
-      district: 3,
-    };
-
-    return [...filtered].sort((a: DataItem, b: DataItem): number => {
-      if (groupOrder[a.group_type] !== groupOrder[b.group_type]) {
-        return groupOrder[a.group_type] - groupOrder[b.group_type];
-      }
-      const aName = a.name || a.label || '';
-      const bName = b.name || b.label || '';
-      return aName.localeCompare(bName);
-    });
   }, [items, filterKey]);
 
-  // 3. Search Filter & Data Slicing Logic
-  // This filters the 5000+ items locally and takes ONLY the top 30
   const displayData = useMemo(() => {
-    let result = sortedItems;
+    let activeList = baseItems;
 
-    // If user is searching, filter the list first
     if (inputValue) {
       const query = inputValue.toLowerCase();
-      result = sortedItems.filter((item) => {
+      activeList = activeList.filter((item) => {
         const nameMatch = (item.name || item.label || '').toLowerCase().includes(query);
         const codeMatch = (item.cp_code || item.identifier || '').toLowerCase().includes(query);
         return nameMatch || codeMatch;
       });
     }
 
-    // Return an object containing both the sliced array and the total matches found
-    return {
-      slicedItems: result.slice(0, VISIBLE_LIMIT),
-      totalMatches: result.length,
+    const groups: Record<string, DataItem[]> = {
+      partner: [],
+      mo: [],
+      district: [],
     };
-  }, [sortedItems, inputValue]);
 
-  // 4. Collection Setup
-  // We don't use Chakra's built-in `useFilter` here because we already did it manually above
+    activeList.forEach((item) => {
+      if (groups[item.group_type]) {
+        groups[item.group_type].push(item);
+      }
+    });
+
+    const finalSlicedList: DataItem[] = [];
+    const groupOrder: ('partner' | 'mo' | 'district')[] = ['partner', 'mo', 'district'];
+
+    let hasHiddenResults = false;
+
+    groupOrder.forEach((groupType) => {
+      const groupArray = groups[groupType];
+
+      if (groupArray.length > 0) {
+        groupArray.sort((a, b) => {
+          const aName = a.name || a.label || '';
+          const bName = b.name || b.label || '';
+          return aName.localeCompare(bName);
+        });
+
+        if (groupArray.length > VISIBLE_LIMIT_PER_GROUP) {
+           hasHiddenResults = true;
+        }
+
+        finalSlicedList.push(...groupArray.slice(0, VISIBLE_LIMIT_PER_GROUP));
+      }
+    });
+
+    return {
+      slicedItems: finalSlicedList,
+      hasHiddenResults,
+      totalMatches: activeList.length,
+    };
+  }, [baseItems, inputValue]);
+
   const { collection, set } = useListCollection<DataItem>({
     initialItems: [],
     itemToString: (item: DataItem): string => item.name || item.label || '',
     itemToValue: (item: DataItem): string => item.id,
   });
 
-  // Hydrate collection dynamically based on our manual slice
   useEffect(() => {
     set(displayData.slicedItems);
   }, [displayData.slicedItems, set]);
@@ -171,7 +183,7 @@ const GroupedDataCombobox = ({
               <ComboboxEmpty>No results found</ComboboxEmpty>
             ) : (
               <>
-                {/* Map over the 30 sliced items */}
+                {/* Map over the aggregated sliced items */}
                 {collection.items.map((item: DataItem, index: number) => {
                   const isFirstOfGroup =
                     index === 0 || collection.items[index - 1].group_type !== item.group_type;
@@ -216,10 +228,10 @@ const GroupedDataCombobox = ({
                   );
                 })}
 
-                {/* Show a helpful message at the bottom if there are more than 30 matches */}
-                {displayData.totalMatches > VISIBLE_LIMIT && (
+                {/* Optional Helper text to show that we are limiting the view per category */}
+                {displayData.hasHiddenResults && (
                   <Span display="block" textAlign="center" py="2" fontSize="xs" color="fg.muted">
-                    Showing {VISIBLE_LIMIT} of {displayData.totalMatches} results. Type to refine...
+                    Showing top {VISIBLE_LIMIT_PER_GROUP} per group. Keep typing to refine...
                   </Span>
                 )}
               </>

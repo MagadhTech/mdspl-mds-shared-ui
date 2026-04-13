@@ -39,10 +39,12 @@ export default function SortableHeaderCell({
   const startX = useRef(0);
   const startWidth = useRef(0);
 
-  const { setNodeRef, attributes, listeners, transform, transition } = useSortable({ id });
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+    id,
+  });
 
   const onMouseDown = (e: React.MouseEvent) => {
-    if (isActions) return; // Disable resizing for actions column
+    if (isActions) return;
     e.stopPropagation();
     startX.current = e.clientX;
 
@@ -71,17 +73,19 @@ export default function SortableHeaderCell({
       onClick={onClick}
       backgroundColor={backgroundColor}
       width={widthStyle}
-      minWidth={isActions ? '30px' : (minW || '20px')}
+      minWidth={isActions ? '30px' : minW || '20px'}
       maxWidth={isActions ? '30px' : undefined}
       px={2} // <-- Makes header compact horizontally
       py={1} // <-- Makes header compact vertically
       h="32px" // <-- Forces a strictly small height
       style={{
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
         cursor,
         borderRight: isActions ? 'none' : borderRight,
         boxSizing: 'border-box',
+        zIndex: isDragging ? 10 : 1, // ✅ Keeps dragged column on top
+        position: isDragging ? 'relative' : 'static', // ✅ Required for z-index to work
       }}
       bg={'gray.100'}
       {...attributes}
@@ -94,7 +98,12 @@ export default function SortableHeaderCell({
         )}
 
         {/* Ensures the content fits well even in the 30px space */}
-        <Box flex="1" overflow="hidden" display="flex" justifyContent={isActions ? 'center' : 'flex-start'}>
+        <Box
+          flex="1"
+          overflow="hidden"
+          display="flex"
+          justifyContent={isActions ? 'center' : 'flex-start'}
+        >
           {children}
         </Box>
 

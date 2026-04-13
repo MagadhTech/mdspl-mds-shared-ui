@@ -46,7 +46,7 @@ export default function TableHeader() {
               <Table.ColumnHeader
                 key={col.id}
                 bg={'gray.100'}
-                w="40px"
+                w="30px"
                 px={1} // Overriding Chakra default padding to keep it compact
                 py={1}
                 h="32px"

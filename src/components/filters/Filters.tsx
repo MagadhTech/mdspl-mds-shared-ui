@@ -23,7 +23,6 @@ export const FiltersToolBar = ({
   return (
     <HStack wrap="wrap" pl={2} pr={2} width="100%" justify="space-between" alignItems="center">
       {title}
-
       <HStack gapX={1} align={'center'}>
         {filters
           .filter((filter) => filter.visible !== false)

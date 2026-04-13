@@ -122,7 +122,7 @@ export default function DataTable<T extends { id: string | number }>({
           minH={0}
           display="flex"
           flexDirection="column"
-          p={2}
+          p={1}
           background={'white'}
           borderRadius={'sm'}
         >
@@ -185,7 +185,6 @@ export default function DataTable<T extends { id: string | number }>({
                 <TableRows
                   data={displayData}
                   columns={effectiveColumns}
-                  // rowVirtualizer={rowVirtualizer}
                   onRowSelect={onRowSelect}
                   onRowSelectEvent={onRowSelectEvent}
                   rowHeight={rowHeight}
