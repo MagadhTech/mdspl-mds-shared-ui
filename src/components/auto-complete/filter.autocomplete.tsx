@@ -48,9 +48,17 @@ export interface GroupedComboboxProps {
   setSelectedId?: (id: string | null) => void;
   setFilterType?: (filterType: DataItem['group_type']) => void;
   groupOrder?: DataItem['group_type'][];
+  visibleLimit?: number;
 }
 
 const VISIBLE_LIMIT_PER_GROUP = 30; // Max items per group
+
+// ✅ FIX 1: Extract the default array outside the component to guarantee a stable reference.
+const DEFAULT_GROUP_ORDER: DataItem['group_type'][] = ['partner', 'mo', 'district'];
+
+// ✅ FIX 2: Extract collection helper functions so they don't recreate on every render.
+const itemToString = (item: DataItem): string => item.name || item.label || '';
+const itemToValue = (item: DataItem): string => item.id;
 
 const GroupedDataCombobox = ({
   baseURL,
@@ -60,7 +68,8 @@ const GroupedDataCombobox = ({
   selectedId,
   setSelectedId,
   setFilterType,
-  groupOrder = ['partner', 'mo', 'district'],
+  visibleLimit = VISIBLE_LIMIT_PER_GROUP,
+  groupOrder = DEFAULT_GROUP_ORDER, // Now uses the stable constant
 }: GroupedComboboxProps) => {
   const [items, setItems] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -70,7 +79,16 @@ const GroupedDataCombobox = ({
     const fetchData = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response: Response = await fetch(baseURL);
+
+        const sessionId = localStorage.getItem('app-session-id'); // Replace 'sessionId' with your actual key if different
+
+        const response: Response = await fetch(baseURL, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(sessionId ? { 'app-session-id': sessionId } : {}),
+          },
+        });
+
         const result: ApiResponse = await response.json();
         if (result.success) {
           setItems(result.data);
@@ -85,7 +103,9 @@ const GroupedDataCombobox = ({
   }, [baseURL]);
 
   const baseItems: DataItem[] = useMemo(() => {
-    return filterKey ? items.filter((item: DataItem) => item.group_type === filterKey) : items;
+    return filterKey
+      ? items.filter((item: DataItem) => item.group_type === filterKey)
+      : items;
   }, [items, filterKey]);
 
   const displayData = useMemo(() => {
@@ -125,11 +145,11 @@ const GroupedDataCombobox = ({
           return aName.localeCompare(bName);
         });
 
-        if (groupArray.length > VISIBLE_LIMIT_PER_GROUP) {
+        if (groupArray.length > visibleLimit) {
           hasHiddenResults = true;
         }
 
-        finalSlicedList.push(...groupArray.slice(0, VISIBLE_LIMIT_PER_GROUP));
+        finalSlicedList.push(...groupArray.slice(0, visibleLimit));
       }
     });
 
@@ -138,15 +158,17 @@ const GroupedDataCombobox = ({
       hasHiddenResults,
       totalMatches: activeList.length,
     };
-  }, [baseItems, inputValue, groupOrder]);
+  }, [baseItems, inputValue, groupOrder, visibleLimit]); // ✅ Added missing visibleLimit dependency
 
+  // ✅ FIX 3: useListCollection now receives stable function references
   const { collection, set } = useListCollection<DataItem>({
     initialItems: [],
-    itemToString: (item: DataItem): string => item.name || item.label || '',
-    itemToValue: (item: DataItem): string => item.id,
+    itemToString,
+    itemToValue,
   });
 
   useEffect(() => {
+    // Because displayData is now thoroughly memoized, this will only fire when actual data changes.
     set(displayData.slicedItems);
   }, [displayData.slicedItems, set]);
 
