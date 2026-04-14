@@ -27,6 +27,7 @@ import MDSSelectBox from '../chakra-compo/SelectBox';
 import { IFilterConfig, IFilterDrawerProps } from './FilterTypes';
 import { addPreset, deletePreset, getPresets, PresetItem } from './presetStore';
 import SortableFilterItem from './SortableFilterItem';
+import MDSButton from '../chakra-compo/Button';
 
 const DrawerRoot = withChildren(Drawer.Root);
 const DrawerTrigger = withChildren(Drawer.Trigger);
@@ -133,6 +134,16 @@ export const renderFilter = (filter: IFilterConfig, drawerOpen?: boolean) => {
         />
       );
 
+      case 'button' :
+      return (
+        <MDSButton
+          label={filter.label}
+          onClick={filter.onClick as () => void}
+          size={filter.buttonSize}
+          colorScheme='blue.500'
+        />
+      );
+
     default:
       return null;
   }
@@ -226,7 +237,6 @@ export const FiltersDrawer = ({
           .filter((f) => f.visible && f.id !== id)
           .reduce((sum, f) => sum + (f.size ?? 1), 0);
 
-        // If the other filters + the new size exceeds the max, block the slider from moving further
         if (totalOtherUnits + newSize > maxToolbarUnits) {
           return; // Silently return so the slider just "stops" at the max allowed value
         }
