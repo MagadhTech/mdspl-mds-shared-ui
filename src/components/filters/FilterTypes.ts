@@ -24,7 +24,7 @@ export interface IFilterConfig<T = any> {
   onClick?: () => void;
   visible: boolean;
   buttonSize?: 'sm' | 'md' | 'lg' | 'xs';
-  size?: 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 | 4.5 | 5;
+  size?: 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 | 4.5 | 5;
   customComponent?: JSX.Element;
   placeholder?: string;
   startDate?: string | null;

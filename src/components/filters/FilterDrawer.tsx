@@ -18,6 +18,7 @@ import { Bookmark, Delete, Edit2, Filter, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { withChildren } from '../../utils/chakra-slot';
+import MDSButton from '../chakra-compo/Button';
 import MDSCheckbox from '../chakra-compo/CheckBox';
 import MDSCombobox from '../chakra-compo/Combobox';
 import MDSDateRangePicker from '../chakra-compo/DateComponent/DateRangeSelector';
@@ -27,7 +28,6 @@ import MDSSelectBox from '../chakra-compo/SelectBox';
 import { IFilterConfig, IFilterDrawerProps } from './FilterTypes';
 import { addPreset, deletePreset, getPresets, PresetItem } from './presetStore';
 import SortableFilterItem from './SortableFilterItem';
-import MDSButton from '../chakra-compo/Button';
 
 const DrawerRoot = withChildren(Drawer.Root);
 const DrawerTrigger = withChildren(Drawer.Trigger);
@@ -134,13 +134,13 @@ export const renderFilter = (filter: IFilterConfig, drawerOpen?: boolean) => {
         />
       );
 
-      case 'button' :
+    case 'button':
       return (
         <MDSButton
           label={filter.label}
           onClick={filter.onClick as () => void}
           size={filter.buttonSize}
-          colorScheme='blue.500'
+          colorScheme="blue.500"
         />
       );
 
@@ -211,10 +211,10 @@ export const FiltersDrawer = ({
     if (isVisible && maxToolbarUnits !== undefined) {
       const totalActiveUnits = filters
         .filter((f) => f.visible)
-        .reduce((sum, f) => sum + (f.size ?? 1), 0);
+        .reduce((sum, f) => sum + (f.size ?? 0.1), 0);
 
       const filterToEnable = filters.find((f) => f.id === id);
-      const addedSize = filterToEnable?.size ?? 1;
+      const addedSize = filterToEnable?.size ?? 0.1;
 
       if (totalActiveUnits + addedSize > maxToolbarUnits) {
         alert(
@@ -230,12 +230,10 @@ export const FiltersDrawer = ({
     if (maxToolbarUnits !== undefined) {
       const targetFilter = filters.find((f) => f.id === id);
 
-      // We only care if the filter is currently active in the toolbar
       if (targetFilter?.visible) {
-        // Calculate the total size of all OTHER active filters
         const totalOtherUnits = filters
           .filter((f) => f.visible && f.id !== id)
-          .reduce((sum, f) => sum + (f.size ?? 1), 0);
+          .reduce((sum, f) => sum + (f.size ?? 0.1), 0);
 
         if (totalOtherUnits + newSize > maxToolbarUnits) {
           return; // Silently return so the slider just "stops" at the max allowed value
@@ -289,8 +287,8 @@ export const FiltersDrawer = ({
                         align="stretch"
                         border="1px solid"
                         borderColor="gray.200"
-                        flex={f.size ?? 1}
-                        minW={`${(f.size ?? 1) * 100}px`}
+                        flex={f.size ?? 0.1}
+                        minW={`${(f.size ?? 0.1) * 10}px`}
                         rounded="md"
                         p={3}
                         mb={3}

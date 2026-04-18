@@ -1,6 +1,6 @@
 {
   "name": "@mdspl/mds-shared-ui",
-  "version": "1.5.9",
+  "version": "1.6.1",
   "description": "Chakra UI v3 DataTable with sorting, pagination, column visibility & drag reorder",
   "author": "magadh",
   "license": "MIT",

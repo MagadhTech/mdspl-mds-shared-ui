@@ -49,14 +49,14 @@ export interface GroupedComboboxProps {
   setFilterType?: (filterType: DataItem['group_type']) => void;
   groupOrder?: DataItem['group_type'][];
   visibleLimit?: number;
+  size?: 'sm' | 'md' | 'lg';
+  width?: string;
 }
 
 const VISIBLE_LIMIT_PER_GROUP = 30; // Max items per group
 
-// ✅ FIX 1: Extract the default array outside the component to guarantee a stable reference.
 const DEFAULT_GROUP_ORDER: DataItem['group_type'][] = ['partner', 'mo', 'district'];
 
-// ✅ FIX 2: Extract collection helper functions so they don't recreate on every render.
 const itemToString = (item: DataItem): string => item.name || item.label || '';
 const itemToValue = (item: DataItem): string => item.id;
 
@@ -70,6 +70,8 @@ const GroupedDataCombobox = ({
   setFilterType,
   visibleLimit = VISIBLE_LIMIT_PER_GROUP,
   groupOrder = DEFAULT_GROUP_ORDER, // Now uses the stable constant
+  size = 'md',
+  width = '320px',
 }: GroupedComboboxProps) => {
   const [items, setItems] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -103,9 +105,7 @@ const GroupedDataCombobox = ({
   }, [baseURL]);
 
   const baseItems: DataItem[] = useMemo(() => {
-    return filterKey
-      ? items.filter((item: DataItem) => item.group_type === filterKey)
-      : items;
+    return filterKey ? items.filter((item: DataItem) => item.group_type === filterKey) : items;
   }, [items, filterKey]);
 
   const displayData = useMemo(() => {
@@ -158,9 +158,8 @@ const GroupedDataCombobox = ({
       hasHiddenResults,
       totalMatches: activeList.length,
     };
-  }, [baseItems, inputValue, groupOrder, visibleLimit]); // ✅ Added missing visibleLimit dependency
+  }, [baseItems, inputValue, groupOrder, visibleLimit]);
 
-  // ✅ FIX 3: useListCollection now receives stable function references
   const { collection, set } = useListCollection<DataItem>({
     initialItems: [],
     itemToString,
@@ -168,23 +167,21 @@ const GroupedDataCombobox = ({
   });
 
   useEffect(() => {
-    // Because displayData is now thoroughly memoized, this will only fire when actual data changes.
     set(displayData.slicedItems);
   }, [displayData.slicedItems, set]);
 
   return (
     <ComboboxRoot
+      size={size}
       collection={collection}
       value={selectedId ? [selectedId] : []}
       onValueChange={(e: { value: string[] }) => {
         const selectedValue = e.value[0] || null;
 
-        // Update the selected ID
         if (setSelectedId) {
           setSelectedId(selectedValue);
         }
 
-        // If a value is selected and setFilterType is provided, update the filter type
         if (setFilterType && selectedValue) {
           const selectedItem = baseItems.find((item) => item.id === selectedValue);
           if (selectedItem) {
@@ -193,7 +190,7 @@ const GroupedDataCombobox = ({
         }
       }}
       onInputValueChange={(e: { inputValue: string }) => setInputValue(e.inputValue)}
-      width="320px"
+      width={width}
       disabled={loading}
     >
       <ComboboxLabel>{label}</ComboboxLabel>
