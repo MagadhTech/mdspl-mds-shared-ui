@@ -49,16 +49,27 @@ export interface GroupedComboboxProps {
   setFilterType?: (filterType: DataItem['group_type']) => void;
   groupOrder?: DataItem['group_type'][];
   visibleLimit?: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xs';
   width?: string;
 }
 
 const VISIBLE_LIMIT_PER_GROUP = 30; // Max items per group
-
 const DEFAULT_GROUP_ORDER: DataItem['group_type'][] = ['partner', 'mo', 'district'];
 
 const itemToString = (item: DataItem): string => item.name || item.label || '';
 const itemToValue = (item: DataItem): string => item.id;
+
+// --- Custom Debounce Hook ---
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 const GroupedDataCombobox = ({
   baseURL,
@@ -69,22 +80,93 @@ const GroupedDataCombobox = ({
   setSelectedId,
   setFilterType,
   visibleLimit = VISIBLE_LIMIT_PER_GROUP,
-  groupOrder = DEFAULT_GROUP_ORDER, // Now uses the stable constant
+  groupOrder = DEFAULT_GROUP_ORDER,
   size = 'md',
   width = '320px',
 }: GroupedComboboxProps) => {
   const [items, setItems] = useState<DataItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
 
+  // UI States
+  const [inputValue, setInputValue] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
+
+  const debouncedSearch = useDebounce(inputValue, 500);
+
+  // --- API Fetch Logic ---
+  // useEffect(() => {
+  //   // Prevent fetching if component is mounted but never opened or searched
+  //   if (!isOpen && !hasFetchedOnce && !debouncedSearch) return;
+
+  //   const fetchData = async (): Promise<void> => {
+  //     try {
+  //       setLoading(true);
+
+  //       const sessionId = localStorage.getItem('app-session-id');
+
+  //       // Construct URL with query parameters for paginated/searchable backend
+  //       const url = new URL(baseURL);
+  //       url.searchParams.append('page', '1');
+  //       url.searchParams.append('limit', visibleLimit.toString());
+
+  //       if (debouncedSearch) {
+  //         url.searchParams.append('search', debouncedSearch);
+  //       }
+  //       if (filterKey) {
+  //         url.searchParams.append('group_type', filterKey);
+  //       }
+
+  //       const response: Response = await fetch(url.toString(), {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           ...(sessionId ? { 'app-session-id': sessionId } : {}),
+  //         },
+  //       });
+
+  //       const result: ApiResponse = await response.json();
+  //       if (result.success) {
+  //         setItems(result.data || []);
+  //         setHasFetchedOnce(true);
+  //       }
+  //     } catch (error: unknown) {
+  //       console.error('Error fetching combobox data:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [baseURL, debouncedSearch, isOpen, filterKey, visibleLimit, hasFetchedOnce]);
+
+  // --- API Fetch Logic ---
   useEffect(() => {
+    // Prevent fetching if component is mounted but never opened or searched
+    if (!isOpen && !hasFetchedOnce && !debouncedSearch) return;
+
     const fetchData = async (): Promise<void> => {
       try {
         setLoading(true);
 
-        const sessionId = localStorage.getItem('app-session-id'); // Replace 'sessionId' with your actual key if different
+        const sessionId = localStorage.getItem('app-session-id');
 
-        const response: Response = await fetch(baseURL, {
+        // Construct URL with query parameters for paginated/searchable backend
+        const url = new URL(baseURL);
+        url.searchParams.append('page', '1');
+        url.searchParams.append('limit', visibleLimit.toString());
+
+        if (debouncedSearch) {
+          url.searchParams.append('search', debouncedSearch);
+        }
+
+        // UPDATED LOGIC: If filterKey exists, use it. Otherwise, join the groupOrder array.
+        if (filterKey) {
+          url.searchParams.append('group_type', filterKey);
+        } else if (groupOrder && groupOrder.length > 0) {
+          url.searchParams.append('group_type', groupOrder.join(','));
+        }
+
+        const response: Response = await fetch(url.toString(), {
           headers: {
             'Content-Type': 'application/json',
             ...(sessionId ? { 'app-session-id': sessionId } : {}),
@@ -93,7 +175,8 @@ const GroupedDataCombobox = ({
 
         const result: ApiResponse = await response.json();
         if (result.success) {
-          setItems(result.data);
+          setItems(result.data || []);
+          setHasFetchedOnce(true);
         }
       } catch (error: unknown) {
         console.error('Error fetching combobox data:', error);
@@ -101,64 +184,45 @@ const GroupedDataCombobox = ({
         setLoading(false);
       }
     };
+
     fetchData();
-  }, [baseURL]);
+  }, [baseURL, debouncedSearch, isOpen, filterKey, groupOrder, visibleLimit, hasFetchedOnce]);
 
-  const baseItems: DataItem[] = useMemo(() => {
-    return filterKey ? items.filter((item: DataItem) => item.group_type === filterKey) : items;
-  }, [items, filterKey]);
-
+  // --- Data Transformation ---
   const displayData = useMemo(() => {
-    let activeList = baseItems;
-
-    if (inputValue) {
-      const query = inputValue.toLowerCase();
-      activeList = activeList.filter((item) => {
-        const nameMatch = (item.name || item.label || '').toLowerCase().includes(query);
-        const codeMatch = (item.cp_code || item.identifier || '').toLowerCase().includes(query);
-        return nameMatch || codeMatch;
-      });
-    }
-
+    // Because the backend handles the search and filtering now,
+    // we just need to group the returned items visually.
     const groups: Record<string, DataItem[]> = {
       partner: [],
       mo: [],
       district: [],
     };
 
-    activeList.forEach((item) => {
+    items.forEach((item) => {
       if (groups[item.group_type]) {
         groups[item.group_type].push(item);
       }
     });
 
     const finalSlicedList: DataItem[] = [];
-    let hasHiddenResults = false;
 
     groupOrder.forEach((groupType) => {
       const groupArray = groups[groupType];
 
       if (groupArray && groupArray.length > 0) {
+        // Optional: Keep client-side sorting if your backend doesn't sort alphabetically
         groupArray.sort((a, b) => {
           const aName = a.name || a.label || '';
           const bName = b.name || b.label || '';
           return aName.localeCompare(bName);
         });
 
-        if (groupArray.length > visibleLimit) {
-          hasHiddenResults = true;
-        }
-
-        finalSlicedList.push(...groupArray.slice(0, visibleLimit));
+        finalSlicedList.push(...groupArray);
       }
     });
 
-    return {
-      slicedItems: finalSlicedList,
-      hasHiddenResults,
-      totalMatches: activeList.length,
-    };
-  }, [baseItems, inputValue, groupOrder, visibleLimit]);
+    return finalSlicedList;
+  }, [items, groupOrder]);
 
   const { collection, set } = useListCollection<DataItem>({
     initialItems: [],
@@ -167,14 +231,16 @@ const GroupedDataCombobox = ({
   });
 
   useEffect(() => {
-    set(displayData.slicedItems);
-  }, [displayData.slicedItems, set]);
+    set(displayData);
+  }, [displayData, set]);
 
   return (
     <ComboboxRoot
       size={size}
       collection={collection}
       value={selectedId ? [selectedId] : []}
+      open={isOpen} // Control open state natively
+      onOpenChange={(e: { open: boolean }) => setIsOpen(e.open)}
       onValueChange={(e: { value: string[] }) => {
         const selectedValue = e.value[0] || null;
 
@@ -183,7 +249,7 @@ const GroupedDataCombobox = ({
         }
 
         if (setFilterType && selectedValue) {
-          const selectedItem = baseItems.find((item) => item.id === selectedValue);
+          const selectedItem = items.find((item) => item.id === selectedValue);
           if (selectedItem) {
             setFilterType(selectedItem.group_type);
           }
@@ -191,18 +257,20 @@ const GroupedDataCombobox = ({
       }}
       onInputValueChange={(e: { inputValue: string }) => setInputValue(e.inputValue)}
       width={width}
-      disabled={loading}
+      disabled={loading && !hasFetchedOnce} // Only completely disable on first load
     >
-      <ComboboxLabel>{label}</ComboboxLabel>
-      <ComboboxControl>
-        <ComboboxInput placeholder={loading ? 'Loading...' : placeholder} />
+      {label && <ComboboxLabel>{label}</ComboboxLabel>}
+
+      {/* Added onClick here to ensure clicking ANYWHERE in the box opens it */}
+      <ComboboxControl onClick={() => setIsOpen(true)}>
+        <ComboboxInput placeholder={loading && !hasFetchedOnce ? 'Loading...' : placeholder} />
 
         <ComboboxIndicatorGroup>
           {loading ? (
             <Spinner size="sm" color="fg.muted" />
           ) : (
             <>
-              <ComboboxClearTrigger />
+              {inputValue && <ComboboxClearTrigger />}
               <ComboboxTrigger />
             </>
           )}
@@ -210,9 +278,9 @@ const GroupedDataCombobox = ({
       </ComboboxControl>
 
       <Portal>
-        <ComboboxPositioner>
+        <ComboboxPositioner zIndex="popover">
           <ComboboxContent maxHeight="400px" overflowY="auto">
-            {loading ? (
+            {loading && !hasFetchedOnce ? (
               <HStack p="3" justify="center">
                 <Spinner size="sm" borderWidth="2px" />
                 <Span fontSize="sm" color="fg.muted">
@@ -223,7 +291,6 @@ const GroupedDataCombobox = ({
               <ComboboxEmpty>No results found</ComboboxEmpty>
             ) : (
               <>
-                {/* Map over the aggregated sliced items */}
                 {collection.items.map((item: DataItem, index: number) => {
                   const isFirstOfGroup =
                     index === 0 || collection.items[index - 1].group_type !== item.group_type;
@@ -233,7 +300,6 @@ const GroupedDataCombobox = ({
 
                   return (
                     <div key={item.id}>
-                      {/* INJECT GROUP HEADER */}
                       {isFirstOfGroup && (
                         <Span
                           display="block"
@@ -255,7 +321,6 @@ const GroupedDataCombobox = ({
                             {itemName}
                           </ComboboxItemText>
 
-                          {/* Hide cp_code for districts, show for MO/Partners */}
                           {item.group_type !== 'district' && itemCpCode && (
                             <ComboboxItemText fontSize="xs" color="fg.muted">
                               {itemCpCode}
@@ -267,13 +332,6 @@ const GroupedDataCombobox = ({
                     </div>
                   );
                 })}
-
-                {/* Optional Helper text to show that we are limiting the view per category */}
-                {displayData.hasHiddenResults && (
-                  <Span display="block" textAlign="center" py="2" fontSize="xs" color="fg.muted">
-                    Showing top {VISIBLE_LIMIT_PER_GROUP} per group. Keep typing to refine...
-                  </Span>
-                )}
               </>
             )}
           </ComboboxContent>

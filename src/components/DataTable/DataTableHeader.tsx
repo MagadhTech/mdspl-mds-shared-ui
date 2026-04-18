@@ -57,7 +57,7 @@ export default function TableHeader() {
           }
 
           // Keeps S.No. and Actions from showing sort arrows
-          const isSortable = col.type !== 'actions' && col.type !== 'visibility';
+          const isSortable = col.type !== 'actions' && col.type !== 'visibility' && col.sortable;
           const isSorted = sortColumn === col.id;
           const isActions = col.id === ACTIONS_COLUMN_ID;
 
@@ -76,7 +76,7 @@ export default function TableHeader() {
                   alignItems: 'center',
                   gap: 4,
                   userSelect: 'none',
-                  fontSize: '12px', // Slightly smaller text for compactness
+                  fontSize: '12px',
                   whiteSpace: 'nowrap',
                 }}
               >
