@@ -1,12 +1,13 @@
 'use client';
 
-import { Box, Spinner, Table } from '@chakra-ui/react';
+import { Box, Flex, Spinner, Table, Text, VStack } from '@chakra-ui/react';
 import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useStore } from '@tanstack/react-store';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef } from 'react';
 
+import { FolderSearch } from 'lucide-react';
 import { setColumnOrder } from './DataTableActions';
 import TableHeader from './DataTableHeader';
 import TablePagination from './DataTablePagination';
@@ -169,15 +170,54 @@ export default function DataTable<T extends { id: string | number }>({
               {showSkeleton ? (
                 <DataTableSkeleton rows={pageSize} columns={effectiveColumns.length} />
               ) : showEmpty ? (
-                <Table.Body>
-                  <Table.Row>
+                <Table.Body h="100%">
+                  <Table.Row h="100%" border="none" borderBottomWidth={0}>
                     <Table.Cell
                       colSpan={effectiveColumns.length}
-                      textAlign="center"
-                      h="200px"
-                      color="gray.500"
+                      border={'none'}
+                      borderBottom="none"
+                      h="100%"
+                      p={0} // Remove cell padding so the Flex container handles it
                     >
-                      {emptyMessage}
+                      <Flex
+                        direction="column"
+                        align="center"
+                        justify="center"
+                        h="100%"
+                        minH="50vh" // Fallback minimum height
+                        w="100%"
+                        p={10}
+                      >
+                        <VStack gap={5}>
+                          {/* Soft background circle behind the icon */}
+                          <Flex
+                            align="center"
+                            justify="center"
+                            h="80px"
+                            w="80px"
+                            rounded="full"
+                            bg="gray.50"
+                            border="1px solid"
+                            borderColor="gray.100"
+                          >
+                            <FolderSearch
+                              size={40}
+                              strokeWidth={1.5}
+                              color="var(--chakra-colors-gray-400)"
+                            />
+                          </Flex>
+
+                          <VStack gap={1}>
+                            <Text fontSize="lg" fontWeight="semibold" color="gray.700">
+                              No Results Found
+                            </Text>
+                            <Text fontSize="sm" color="gray.500" textAlign="center" maxW="sm">
+                              {emptyMessage ||
+                                "We couldn't find any records matching your current filters. Try adjusting your search criteria."}
+                            </Text>
+                          </VStack>
+                        </VStack>
+                      </Flex>
                     </Table.Cell>
                   </Table.Row>
                 </Table.Body>
