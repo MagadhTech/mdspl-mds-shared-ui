@@ -58,101 +58,7 @@ import {
   Wallet2,
   Warehouse,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-
-// Data with children properly nested
-// const SEARCH_CATEGORIES = [
-//   {
-//     title: 'EXTERNAL SERVICES',
-//     items: [
-//       { label: 'Rate', url: 'https://rate.mgdh.in', icon: TrendingUp },
-//       { label: 'Raw', url: 'https://raw.mgdh.in', icon: Layers },
-//       { label: 'Master', url: 'https://master.mgdh.in', icon: Database },
-//       { label: 'Bank', url: 'https://bank.mgdh.in', icon: Landmark },
-//       { label: 'Scroll', url: 'https://scroll.mgdh.in', icon: ScrollText },
-//       { label: 'Logistic', url: 'https://logistic-mds.mgdh.in/driver', icon: Truck },
-//       { label: 'Marketing', url: 'https://marketing.mgdh.in', icon: User },
-//       { label: 'Order', url: 'https://order.mgdh.in', icon: User },
-//     ],
-//   },
-//   {
-//     title: 'RAW MATERIALS',
-//     items: [
-//       { label: 'PO Orders', url: '/billet/orders', icon: CircleStar },
-//       { label: 'Processing Entries', url: '/billet/processing-entries', icon: Van },
-//       { label: 'Completed Entries', url: '/billet/completed-entries', icon: CheckCheck },
-//       { label: 'Chemical Test', url: '/billet/chemical-test', icon: FlaskConical },
-//       { label: 'Builty Rate', url: '/billet/builty-rate', icon: IndianRupee },
-//       { label: 'Cash Accountant', url: '/billet/cash-accountant', icon: BetweenHorizonalStart },
-//     ],
-//   },
-//   {
-//     title: 'BANKING & SCROLL',
-//     items: [
-//       { label: 'Banking Report', url: '/banking-report', icon: ClipboardMinus },
-//       { label: 'Bank Beneficiary', url: '/bank-beneficiary', icon: Landmark },
-//       { label: 'Bank Transaction', url: '/bank-transcations', icon: FolderInput },
-//       { label: 'Van List', url: '/van-list', icon: ScrollText },
-//       { label: 'Bank Assign Types', url: '/bank-assign-types', icon: BookCheck },
-//       { label: 'Tally Ledgers', url: '/tally-ledgers', icon: BookCopy },
-//       { label: 'Scroll Transactions', url: '/scroll-transactions', icon: Banknote },
-//       { label: 'Petty Cash', url: '/petty-cash', icon: IndianRupee },
-//     ],
-//   },
-//   {
-//     title: 'ORDERS & MANAGEMENT',
-//     items: [
-//       { label: 'Dashboard', url: '/dashboard', icon: LayoutGrid },
-//       { label: 'Cash Order', url: '/cashOrder/cash_order_list', icon: Banknote },
-//       { label: 'Partner Order', url: '/partnerOrder/partner_order_list', icon: Users },
-//       { label: 'Loading User', url: '/loadingUser/loading_user', icon: UserCog },
-//       {
-//         label: 'Waste PO',
-//         url: '/wasteOrder',
-//         icon: Radiation,
-//         children: [
-//           { label: 'Waste PO', url: '/wasteOrder/waste_po_list' },
-//           { label: 'Waste Order', url: '/wasteOrder/waste_order_list' },
-//         ],
-//       },
-//       { label: 'Order Billing', url: '/OrderBilling/order_billing', icon: NotebookPen },
-//       { label: 'Manual Invoice', url: '/ManualInvoice/manual_invoice', icon: SquareChartGantt },
-//       {
-//         label: 'Gift',
-//         url: '/gift',
-//         icon: Gift,
-//         children: [
-//           { label: 'Master List', url: '/gift/master_list/master_list' },
-//           { label: 'Entry List', url: '/gift/entry_list/entry_list' },
-//           { label: 'Gift Templates', url: '/gift/gift_templates/gift_templates' },
-//         ],
-//       },
-//       {
-//         label: 'Rewards',
-//         url: '/rewards',
-//         icon: Gift,
-//         children: [
-//           { label: 'Gift Slabs', url: '/rewards/gift_slabs/gift_slabs' },
-//         ],
-//       },
-//       { label: 'Performance Report', url: '/performanceReport/performance_report', icon: FileChartColumnIncreasing },
-//       { label: 'Parking List', url: '/parking/parking-list', icon: ParkingCircle },
-//       { label: 'Vehicle List', url: '/vehicleList/vehicle-list', icon: Truck },
-//       {
-//         label: 'Report',
-//         url: '/report',
-//         icon: FileStack,
-//         children: [
-//           { label: 'Product Tally', url: '/productTally/productTally' },
-//           { label: 'Invoice Report', url: '/InvoiceReport/InvoiceReport' },
-//           { label: 'MO Order Report', url: '/MO_OrderReport/MO_OrderReport' },
-//         ],
-//       },
-//       { label: 'Manual Order', url: '/manualOrder/manualTMTOrder', icon: Settings2 },
-//       { label: 'Developer Config', url: '/dev/update_config', icon: Code },
-//     ],
-//   },
-// ];
+import { useEffect, useMemo, useRef, useState } from 'react'; // Added useRef
 
 const SEARCH_CATEGORIES = [
   {
@@ -445,7 +351,8 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Flatten and filter the items for the UI (Algolia style grouping)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   const flatDisplayItems = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
     const result: any[] = [];
@@ -469,7 +376,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
             categoryTitle: category.title,
           });
 
-          // Add Children (if parent matched, show all children. Otherwise, show only matched children)
           const childrenToRender = itemMatches ? item.children || [] : matchedChildren;
 
           childrenToRender.forEach((child) => {
@@ -495,34 +401,14 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
     setSelectedIndex(0);
   }, [searchQuery]);
 
-  // Smart Routing Logic based on Current Environment
-  //   const handleSelect = (item) => {
-  //     if (!item.url) return;
-
-  //     setIsOpen(false);
-  //     setSearchQuery('');
-
-  //     if (item.url.startsWith('http')) {
-  //       const currentHost = window.location.hostname; // e.g., 'scroll.mgdh.in'
-  //       const targetUrl = new URL(item.url);
-  //       const targetHost = targetUrl.hostname;
-
-  //       // Special rule: order.mgdh.in and mgdh.in are considered the same environment
-  //       const isCurrentOrder = currentHost === 'mgdh.in' || currentHost === 'order.mgdh.in';
-  //       const isTargetOrder = targetHost === 'mgdh.in' || targetHost === 'order.mgdh.in';
-
-  //       if (currentHost === targetHost || (isCurrentOrder && isTargetOrder)) {
-  //         // We are already on the target subdomain -> Navigate locally
-  //         window.location.href = item.url;
-  //       } else {
-  //         // We are on a different app -> Open in a new blank tab
-  //         window.open(item.url, '_blank');
-  //       }
-  //     } else {
-  //       // Relative path (e.g. '/dashboard') -> Local internal route
-  //       window.location.href = item.url;
-  //     }
-  //   };
+  // Scroll active item into view
+  useEffect(() => {
+    if (isOpen && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({
+        block: 'nearest', // Keeps the UI stable and just shifts the scrollbar enough to see the item
+      });
+    }
+  }, [selectedIndex, isOpen]);
 
   const internalRoute = (path: string) => {
     if (navigate) {
@@ -532,7 +418,7 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
     }
   };
 
-  const handleSelect = (item) => {
+  const handleSelect = (item: any) => {
     if (!item.url) return;
 
     setIsOpen(false);
@@ -673,7 +559,13 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
                     index === 0 || flatDisplayItems[index - 1].categoryTitle !== item.categoryTitle;
 
                   return (
-                    <Box key={`${item.id}-${index}`}>
+                    // Attach the Ref here so the scroll calculation knows exactly where this item is
+                    <Box
+                      key={`${item.id}-${index}`}
+                      ref={(el) => {
+                        itemRefs.current[index] = el;
+                      }}
+                    >
                       {showCategoryHeader && (
                         <Text
                           fontSize="xs"
