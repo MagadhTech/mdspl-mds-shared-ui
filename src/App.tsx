@@ -4,6 +4,7 @@ import { useState } from 'react';
 import GroupedDataCombobox from './components/auto-complete/filter.autocomplete';
 import MDSConfirmActionDialog from './components/chakra-compo/ConfirmDialogBox';
 import MDSConfirmDeleteDialog from './components/chakra-compo/DeleteDialogBox';
+import CommandPalette from './components/command/CommandPalette';
 import usePagination from './components/customHooks/Pagination.hook';
 import { Column, DataTable } from './components/DataTable';
 import { ACTIONS_COLUMN_ID } from './components/DataTable/types';
@@ -102,6 +103,7 @@ function App() {
         paddingTop: 10,
       }}
     >
+      <CommandPalette />
       <DemoFilter onSearchChange={() => {}} search="" />
       <GroupedDataCombobox
         baseURL="https://dev-api.mgdh.in/master/api/v1/search/user-group"

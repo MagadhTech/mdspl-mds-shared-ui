@@ -56,3 +56,7 @@ export type { MDSTooltipProps } from './components/chakra-compo/tooltip';
 
 export { default as GroupedDataCombobox } from './components/auto-complete/filter.autocomplete';
 export type { GroupedComboboxProps } from './components/auto-complete/filter.autocomplete';
+
+// export for CommandPalette component
+export { default as CommandPalette } from './components/command/CommandPalette';
+export type { CommandPaletteProps } from './components/command/CommandPalette';
