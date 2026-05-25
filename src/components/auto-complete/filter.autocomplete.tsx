@@ -87,6 +87,8 @@ const GroupedDataCombobox = ({
   const [items, setItems] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const [cache, setCache] = useState<Record<string, DataItem[]>>({});
+
   // UI States
   const [inputValue, setInputValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -105,7 +107,6 @@ const GroupedDataCombobox = ({
 
   //       const sessionId = localStorage.getItem('app-session-id');
 
-  //       // Construct URL with query parameters for paginated/searchable backend
   //       const url = new URL(baseURL);
   //       url.searchParams.append('page', '1');
   //       url.searchParams.append('limit', visibleLimit.toString());
@@ -113,8 +114,11 @@ const GroupedDataCombobox = ({
   //       if (debouncedSearch) {
   //         url.searchParams.append('search', debouncedSearch);
   //       }
+
   //       if (filterKey) {
   //         url.searchParams.append('group_type', filterKey);
+  //       } else if (groupOrder && groupOrder.length > 0) {
+  //         url.searchParams.append('group_type', groupOrder.join(','));
   //       }
 
   //       const response: Response = await fetch(url.toString(), {
@@ -137,12 +141,20 @@ const GroupedDataCombobox = ({
   //   };
 
   //   fetchData();
-  // }, [baseURL, debouncedSearch, isOpen, filterKey, visibleLimit, hasFetchedOnce]);
+  // }, [baseURL, debouncedSearch, isOpen, filterKey, groupOrder, visibleLimit, hasFetchedOnce]);
 
   // --- API Fetch Logic ---
   useEffect(() => {
-    // Prevent fetching if component is mounted but never opened or searched
+    // don't fetch initially if never opened/searched
     if (!isOpen && !hasFetchedOnce && !debouncedSearch) return;
+
+    const searchKey = `${debouncedSearch || 'default'}-${filterKey || groupOrder.join(',')}`;
+
+    // use cached data
+    if (cache[searchKey]) {
+      setItems(cache[searchKey]);
+      return;
+    }
 
     const fetchData = async (): Promise<void> => {
       try {
@@ -150,7 +162,6 @@ const GroupedDataCombobox = ({
 
         const sessionId = localStorage.getItem('app-session-id');
 
-        // Construct URL with query parameters for paginated/searchable backend
         const url = new URL(baseURL);
         url.searchParams.append('page', '1');
         url.searchParams.append('limit', visibleLimit.toString());
@@ -159,14 +170,13 @@ const GroupedDataCombobox = ({
           url.searchParams.append('search', debouncedSearch);
         }
 
-        // UPDATED LOGIC: If filterKey exists, use it. Otherwise, join the groupOrder array.
         if (filterKey) {
           url.searchParams.append('group_type', filterKey);
-        } else if (groupOrder && groupOrder.length > 0) {
+        } else if (groupOrder?.length) {
           url.searchParams.append('group_type', groupOrder.join(','));
         }
 
-        const response: Response = await fetch(url.toString(), {
+        const response = await fetch(url.toString(), {
           headers: {
             'Content-Type': 'application/json',
             ...(sessionId ? { 'app-session-id': sessionId } : {}),
@@ -174,11 +184,21 @@ const GroupedDataCombobox = ({
         });
 
         const result: ApiResponse = await response.json();
+
         if (result.success) {
-          setItems(result.data || []);
+          const newData = result.data || [];
+
+          setItems(newData);
+
+          // save in cache
+          setCache((prev) => ({
+            ...prev,
+            [searchKey]: newData,
+          }));
+
           setHasFetchedOnce(true);
         }
-      } catch (error: unknown) {
+      } catch (error) {
         console.error('Error fetching combobox data:', error);
       } finally {
         setLoading(false);
@@ -186,12 +206,10 @@ const GroupedDataCombobox = ({
     };
 
     fetchData();
-  }, [baseURL, debouncedSearch, isOpen, filterKey, groupOrder, visibleLimit, hasFetchedOnce]);
+  }, [baseURL, debouncedSearch, filterKey, groupOrder, visibleLimit, isOpen]);
 
   // --- Data Transformation ---
   const displayData = useMemo(() => {
-    // Because the backend handles the search and filtering now,
-    // we just need to group the returned items visually.
     const groups: Record<string, DataItem[]> = {
       partner: [],
       mo: [],
@@ -210,7 +228,6 @@ const GroupedDataCombobox = ({
       const groupArray = groups[groupType];
 
       if (groupArray && groupArray.length > 0) {
-        // Optional: Keep client-side sorting if your backend doesn't sort alphabetically
         groupArray.sort((a, b) => {
           const aName = a.name || a.label || '';
           const bName = b.name || b.label || '';
