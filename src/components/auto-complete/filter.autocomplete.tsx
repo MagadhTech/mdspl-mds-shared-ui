@@ -31,7 +31,7 @@ export interface DataItem {
   cp_code?: string;
   label?: string;
   identifier?: string;
-  group_type: 'mo' | 'district' | 'partner';
+  group_type: 'mo' | 'district' | 'partner' | 'mo_group';
 }
 
 interface ApiResponse {
@@ -54,7 +54,7 @@ export interface GroupedComboboxProps {
 }
 
 const VISIBLE_LIMIT_PER_GROUP = 30; // Max items per group
-const DEFAULT_GROUP_ORDER: DataItem['group_type'][] = ['partner', 'mo', 'district'];
+const DEFAULT_GROUP_ORDER: DataItem['group_type'][] = ['partner', 'mo', 'district', 'mo_group'];
 
 const itemToString = (item: DataItem): string => item.name || item.label || '';
 const itemToValue = (item: DataItem): string => item.id;

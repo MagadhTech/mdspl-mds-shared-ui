@@ -6,7 +6,6 @@ import {
   Banknote,
   BetweenHorizonalStart,
   BookCheck,
-  BookCopy,
   Building2,
   CheckCheck,
   CircleStar,
@@ -18,6 +17,7 @@ import {
   Codesandbox,
   Cylinder,
   Database,
+  Factory,
   FileChartColumnIncreasing,
   FileStack,
   FlaskConical,
@@ -49,6 +49,7 @@ import {
   ShoppingBag,
   SquareArrowRight,
   SquareChartGantt,
+  Store,
   TrendingUp,
   Truck,
   User,
@@ -58,7 +59,7 @@ import {
   Wallet2,
   Warehouse,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react'; // Added useRef
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const SEARCH_CATEGORIES = [
   {
@@ -66,18 +67,93 @@ const SEARCH_CATEGORIES = [
     items: [
       { label: 'Rate', url: 'https://rate.mgdh.in', icon: TrendingUp },
       { label: 'Raw', url: 'https://raw.mgdh.in', icon: Layers },
-      { label: 'Master', url: 'https://master.mgdh.in', icon: Database },
+      // Master & Scroll removed: now Native to Order
       { label: 'Bank', url: 'https://bank.mgdh.in', icon: Landmark },
-      { label: 'Scroll', url: 'https://scroll.mgdh.in', icon: ScrollText },
       { label: 'Logistic', url: 'https://logistic-mds.mgdh.in/driver', icon: Truck },
       { label: 'Marketing', url: 'https://marketing.mgdh.in', icon: User },
       { label: 'Order', url: 'https://order.mgdh.in', icon: User },
     ],
   },
   {
-    title: 'MASTER',
+    title: 'RAW MATERIALS',
     items: [
-      { label: 'Dashboard', url: '/profile', icon: Home },
+      { label: 'PO Orders', url: '/billet/orders', icon: CircleStar },
+      { label: 'Processing Entries', url: '/billet/processing-entries', icon: Van },
+      { label: 'Completed Entries', url: '/billet/completed-entries', icon: CheckCheck },
+      { label: 'Chemical Test', url: '/billet/chemical-test', icon: FlaskConical },
+      { label: 'Builty Rate', url: '/billet/builty-rate', icon: IndianRupee },
+      { label: 'Cash Accountant', url: '/billet/cash-accountant', icon: BetweenHorizonalStart },
+    ],
+  },
+  {
+    title: 'BANKING', // Separated banking links
+    items: [
+      { label: 'Banking Report', url: '/banking-report', icon: ClipboardMinus },
+      { label: 'Bank Beneficiary', url: '/bank-beneficiary', icon: Landmark },
+      { label: 'Bank Transaction', url: '/bank-transcations', icon: FolderInput },
+      { label: 'Van List', url: '/van-list', icon: ScrollText },
+      { label: 'Bank Assign Types', url: '/bank-assign-types', icon: BookCheck },
+    ],
+  },
+  {
+    title: 'ORDERS & MANAGEMENT',
+    items: [
+      // ORDER ITEMS
+      { label: 'Dashboard', url: '/dashboard', icon: LayoutGrid },
+      { label: 'Cash Order', url: '/cashOrder/cash_order_list', icon: Banknote },
+      { label: 'Partner Order', url: '/partnerOrder/partner_order_list', icon: Users },
+      { label: 'Warehouse Order', url: '/warehousepage/warehouseorder', icon: Warehouse },
+      { label: 'Store Order', url: '/storeOrder/storeOrderList', icon: Store },
+      { label: 'Warehouse Queue', url: '/WarehouseQueue/warehouse_queue', icon: Factory },
+      { label: 'Loading User', url: '/loadingUser/loading_user', icon: UserCog },
+      {
+        label: 'Waste PO',
+        url: '/wasteOrder',
+        icon: Radiation,
+        children: [
+          { label: 'Waste PO', url: '/wasteOrder/waste_po_list' },
+          { label: 'Waste Order', url: '/wasteOrder/waste_order_list' },
+        ],
+      },
+      { label: 'Order Billing', url: '/OrderBilling/order_billing', icon: NotebookPen },
+      { label: 'Manual Invoice', url: '/ManualInvoice/manual_invoice', icon: SquareChartGantt },
+      {
+        label: 'Gift',
+        url: '/gift',
+        icon: Gift,
+        children: [
+          { label: 'Master List', url: '/gift/master_list/master_list' },
+          { label: 'Entry List', url: '/gift/entry_list/entry_list' },
+          { label: 'Gift Templates', url: '/gift/gift_templates/gift_templates' },
+        ],
+      },
+      {
+        label: 'Rewards',
+        url: '/rewards',
+        icon: Gift,
+        children: [{ label: 'Gift Slabs', url: '/rewards/gift_slabs/gift_slabs' }],
+      },
+      {
+        label: 'Performance Report',
+        url: '/performanceReport/performance_report',
+        icon: FileChartColumnIncreasing,
+      },
+      { label: 'Parking List', url: '/parking/parking-list', icon: ParkingCircle },
+      { label: 'Vehicle List', url: '/vehicleList/vehicle-list', icon: Truck },
+      {
+        label: 'Report',
+        url: '/report',
+        icon: FileStack,
+        children: [
+          { label: 'Product Tally', url: '/productTally/productTally' },
+          { label: 'Invoice Report', url: '/InvoiceReport/InvoiceReport' },
+          { label: 'MO Order Report', url: '/MO_OrderReport/MO_OrderReport' },
+        ],
+      },
+      { label: 'Manual Order', url: '/manualOrder/manualTMTOrder', icon: Settings2 },
+      { label: 'Developer Config', url: '/dev/update_config', icon: Code },
+
+      // --- MASTER MERGED ITEMS ---
       { label: 'User Management', url: '/users', icon: Users },
       { label: 'ERP User', url: '/erp-users', icon: Users },
       { label: 'OAuth Applications', url: '/oauth', icon: KeyRound },
@@ -103,7 +179,7 @@ const SEARCH_CATEGORIES = [
         ],
       },
       { label: 'District', url: '/district', icon: LandPlot },
-      { label: 'Vehicle List', url: '/vehicle', icon: Truck },
+      { label: 'Master Vehicle List', url: '/vehicle', icon: Truck },
       {
         label: 'Warehouse',
         url: '/warehouse',
@@ -152,85 +228,18 @@ const SEARCH_CATEGORIES = [
       },
       { label: 'Logs', url: '/logs', icon: ClipboardCheck },
       { label: 'User Firebase', url: '/user-firebase', icon: User },
-    ],
-  },
-  {
-    title: 'RAW MATERIALS',
-    items: [
-      { label: 'PO Orders', url: '/billet/orders', icon: CircleStar },
-      { label: 'Processing Entries', url: '/billet/processing-entries', icon: Van },
-      { label: 'Completed Entries', url: '/billet/completed-entries', icon: CheckCheck },
-      { label: 'Chemical Test', url: '/billet/chemical-test', icon: FlaskConical },
-      { label: 'Builty Rate', url: '/billet/builty-rate', icon: IndianRupee },
-      { label: 'Cash Accountant', url: '/billet/cash-accountant', icon: BetweenHorizonalStart },
-    ],
-  },
-  {
-    title: 'BANKING & SCROLL',
-    items: [
-      { label: 'Banking Report', url: '/banking-report', icon: ClipboardMinus },
-      { label: 'Bank Beneficiary', url: '/bank-beneficiary', icon: Landmark },
-      { label: 'Bank Transaction', url: '/bank-transcations', icon: FolderInput },
-      { label: 'Van List', url: '/van-list', icon: ScrollText },
-      { label: 'Bank Assign Types', url: '/bank-assign-types', icon: BookCheck },
-      { label: 'Tally Ledgers', url: '/tally-ledgers', icon: BookCopy },
-      { label: 'Scroll Transactions', url: '/scroll-transactions', icon: Banknote },
-      { label: 'Petty Cash', url: '/petty-cash', icon: IndianRupee },
-    ],
-  },
-  {
-    title: 'ORDERS & MANAGEMENT',
-    items: [
-      { label: 'Dashboard', url: '/dashboard', icon: LayoutGrid },
-      { label: 'Cash Order', url: '/cashOrder/cash_order_list', icon: Banknote },
-      { label: 'Partner Order', url: '/partnerOrder/partner_order_list', icon: Users },
-      { label: 'Loading User', url: '/loadingUser/loading_user', icon: UserCog },
+
+      // --- SCROLL MERGED ITEMS ---
       {
-        label: 'Waste PO',
-        url: '/wasteOrder',
-        icon: Radiation,
+        label: 'Scroll',
+        url: '/scroll',
+        icon: Settings2,
         children: [
-          { label: 'Waste PO', url: '/wasteOrder/waste_po_list' },
-          { label: 'Waste Order', url: '/wasteOrder/waste_order_list' },
+          { label: 'Tally Ledgers', url: '/scroll/tally-ledgers' },
+          { label: 'Scroll Transactions', url: '/scroll/scroll-transactions' },
+          { label: 'Petty Cash', url: '/scroll/petty-cash' },
         ],
       },
-      { label: 'Order Billing', url: '/OrderBilling/order_billing', icon: NotebookPen },
-      { label: 'Manual Invoice', url: '/ManualInvoice/manual_invoice', icon: SquareChartGantt },
-      {
-        label: 'Gift',
-        url: '/gift',
-        icon: Gift,
-        children: [
-          { label: 'Master List', url: '/gift/master_list/master_list' },
-          { label: 'Entry List', url: '/gift/entry_list/entry_list' },
-          { label: 'Gift Templates', url: '/gift/gift_templates/gift_templates' },
-        ],
-      },
-      {
-        label: 'Rewards',
-        url: '/rewards',
-        icon: Gift,
-        children: [{ label: 'Gift Slabs', url: '/rewards/gift_slabs/gift_slabs' }],
-      },
-      {
-        label: 'Performance Report',
-        url: '/performanceReport/performance_report',
-        icon: FileChartColumnIncreasing,
-      },
-      { label: 'Parking List', url: '/parking/parking-list', icon: ParkingCircle },
-      { label: 'Vehicle List', url: '/vehicleList/vehicle-list', icon: Truck },
-      {
-        label: 'Report',
-        url: '/report',
-        icon: FileStack,
-        children: [
-          { label: 'Product Tally', url: '/productTally/productTally' },
-          { label: 'Invoice Report', url: '/InvoiceReport/InvoiceReport' },
-          { label: 'MO Order Report', url: '/MO_OrderReport/MO_OrderReport' },
-        ],
-      },
-      { label: 'Manual Order', url: '/manualOrder/manualTMTOrder', icon: Settings2 },
-      { label: 'Developer Config', url: '/dev/update_config', icon: Code },
     ],
   },
   {
@@ -332,10 +341,10 @@ const SEARCH_CATEGORIES = [
   },
 ];
 
+// Removed MASTER mapping and updated BANKING mapping
 const CATEGORY_DOMAINS: Record<string, string> = {
-  MASTER: 'master.mgdh.in',
   'RAW MATERIALS': 'raw.mgdh.in',
-  'BANKING & SCROLL': 'scroll.mgdh.in',
+  BANKING: 'bank.mgdh.in',
   'ORDERS & MANAGEMENT': 'order.mgdh.in',
   LOGISTICS: 'logistic-mds.mgdh.in',
   MARKETING: 'marketing.mgdh.in',
@@ -364,9 +373,7 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
           child.label.toLowerCase().includes(lowerQuery),
         );
 
-        // If parent matches, or any child matches, we include them
         if (itemMatches || matchedChildren.length > 0) {
-          // Add Parent
           result.push({
             id: item.url || item.label,
             label: item.label,
@@ -383,7 +390,7 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
               id: child.url || child.label,
               label: child.label,
               url: child.url,
-              icon: Hash, // Hash icon for children, like the screenshot
+              icon: Hash,
               isChild: true,
               parentLabel: item.label,
               categoryTitle: category.title,
@@ -396,25 +403,23 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
     return result;
   }, [searchQuery]);
 
-  // Reset selection when search changes
   useEffect(() => {
     setSelectedIndex(0);
   }, [searchQuery]);
 
-  // Scroll active item into view
   useEffect(() => {
     if (isOpen && itemRefs.current[selectedIndex]) {
       itemRefs.current[selectedIndex]?.scrollIntoView({
-        block: 'nearest', // Keeps the UI stable and just shifts the scrollbar enough to see the item
+        block: 'nearest',
       });
     }
   }, [selectedIndex, isOpen]);
 
   const internalRoute = (path: string) => {
     if (navigate) {
-      navigate(path); // Use the provided router to avoid reload
+      navigate(path);
     } else {
-      window.location.href = path; // Fallback to native window routing
+      window.location.href = path;
     }
   };
 
@@ -424,10 +429,9 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
     setIsOpen(false);
     setSearchQuery('');
 
-    const currentHost = window.location.hostname; // e.g., 'rate.mgdh.in'
+    const currentHost = window.location.hostname;
     const isCurrentOrder = currentHost === 'mgdh.in' || currentHost === 'order.mgdh.in';
 
-    // 1. Handle explicit absolute URLs (EXTERNAL SERVICES)
     if (item.url.startsWith('http')) {
       const targetUrl = new URL(item.url);
       const targetHost = targetUrl.hostname;
@@ -452,7 +456,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
     }
   };
 
-  // Keyboard Event Listeners
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
@@ -494,7 +497,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
 
   return (
     <Portal>
-      {/* Backdrop */}
       <Flex
         position="fixed"
         top="0"
@@ -509,7 +511,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
         pt="10vh"
         onClick={() => setIsOpen(false)}
       >
-        {/* Modal Content */}
         <Box
           bg="white"
           w="100%"
@@ -519,7 +520,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
           overflow="hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header / Search Input */}
           <Flex align="center" px={5} py={4} borderBottom="1px solid" borderColor="gray.100">
             <Icon as={Search} color="blue.500" boxSize={5} mr={4} />
             <Input
@@ -545,7 +545,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
             </Kbd>
           </Flex>
 
-          {/* Body / Results */}
           <Box maxH="60vh" overflowY="auto" pb={4}>
             {flatDisplayItems.length === 0 ? (
               <Text textAlign="center" color="gray.500" py={10}>
@@ -559,7 +558,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
                     index === 0 || flatDisplayItems[index - 1].categoryTitle !== item.categoryTitle;
 
                   return (
-                    // Attach the Ref here so the scroll calculation knows exactly where this item is
                     <Box
                       key={`${item.id}-${index}`}
                       ref={(el) => {
@@ -585,7 +583,7 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
                         justify="space-between"
                         px={4}
                         py={3}
-                        ml={item.isChild ? 8 : 0} // Indent children
+                        ml={item.isChild ? 8 : 0}
                         borderRadius="md"
                         cursor="pointer"
                         bg={isSelected ? 'blue.50' : 'transparent'}
@@ -618,7 +616,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
                           </Flex>
                         </Flex>
 
-                        {/* Badge for external Links or parent tracking */}
                         {item.url?.startsWith('http') && !item.isChild && (
                           <Text
                             fontSize="xs"
@@ -639,7 +636,6 @@ const CommandPalette = ({ navigate }: CommandPaletteProps) => {
             )}
           </Box>
 
-          {/* Footer */}
           <Flex
             px={6}
             py={3}
